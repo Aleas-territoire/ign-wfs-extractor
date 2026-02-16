@@ -11,40 +11,99 @@ let extractedData = null;
 
 // Initialisation de la carte
 function initMap() {
-    map = L.map('map').setView([46.603354, 1.888334], 6);
-    
-    L.tileLayer('https://{s}.tile.openstreetmap.fr/osmfr/{z}/{x}/{y}.png', {
-        attribution: '© OpenStreetMap contributors',
-        maxZoom: 19
-    }).addTo(map);
+    try {
+        map = L.map('map').setView([46.603354, 1.888334], 6);
+        
+        L.tileLayer('https://{s}.tile.openstreetmap.fr/osmfr/{z}/{x}/{y}.png', {
+            attribution: '© OpenStreetMap contributors',
+            maxZoom: 19
+        }).addTo(map);
+        
+        console.log('Carte initialisée avec succès');
+    } catch (error) {
+        console.error('Erreur lors de l\'initialisation de la carte:', error);
+    }
 }
 
 // Recherche de communes avec autocomplétion
-const communeSearch = document.getElementById('commune-search');
-const suggestionsDiv = document.getElementById('suggestions');
-let searchTimeout;
-
-communeSearch.addEventListener('input', (e) => {
-    const query = e.target.value.trim();
+document.addEventListener('DOMContentLoaded', () => {
+    console.log('DOM chargé');
     
-    if (query.length < 2) {
-        suggestionsDiv.classList.remove('active');
+    // Initialiser la carte
+    initMap();
+    updateInfo('<p>👋 Bienvenue ! Commencez par rechercher une commune ci-dessus.</p>');
+    
+    // Configurer la recherche de communes
+    const communeSearch = document.getElementById('commune-search');
+    const suggestionsDiv = document.getElementById('suggestions');
+    
+    if (!communeSearch) {
+        console.error('Element commune-search non trouvé');
         return;
     }
     
-    clearTimeout(searchTimeout);
-    searchTimeout = setTimeout(() => searchCommunes(query), 300);
+    if (!suggestionsDiv) {
+        console.error('Element suggestions non trouvé');
+        return;
+    }
+    
+    console.log('Éléments de recherche trouvés');
+    
+    let searchTimeout;
+    
+    communeSearch.addEventListener('input', (e) => {
+        const query = e.target.value.trim();
+        console.log('Recherche:', query);
+        
+        if (query.length < 2) {
+            suggestionsDiv.classList.remove('active');
+            suggestionsDiv.innerHTML = '';
+            return;
+        }
+        
+        clearTimeout(searchTimeout);
+        searchTimeout = setTimeout(() => searchCommunes(query), 300);
+    });
+    
+    // Fermer les suggestions en cliquant ailleurs
+    document.addEventListener('click', (e) => {
+        if (!e.target.closest('#commune-search') && !e.target.closest('#suggestions')) {
+            suggestionsDiv.classList.remove('active');
+        }
+    });
+    
+    // Bouton d'extraction
+    const extractBtn = document.getElementById('extract-btn');
+    if (extractBtn) {
+        extractBtn.addEventListener('click', extractWFSData);
+        console.log('Bouton extraction configuré');
+    }
+    
+    // Bouton d'export
+    const exportBtn = document.getElementById('export-geojson');
+    if (exportBtn) {
+        exportBtn.addEventListener('click', exportGeoJSON);
+        console.log('Bouton export configuré');
+    }
 });
 
 async function searchCommunes(query) {
+    const suggestionsDiv = document.getElementById('suggestions');
+    
     try {
+        console.log('Recherche de:', query);
+        
         const response = await fetch(
             `${COMMUNE_API_URL}?nom=${encodeURIComponent(query)}&fields=nom,code,codesPostaux,centre,contour&format=json&geometry=contour&limit=10`
         );
         
-        if (!response.ok) throw new Error('Erreur de recherche');
+        if (!response.ok) {
+            throw new Error('Erreur de recherche');
+        }
         
         const communes = await response.json();
+        console.log('Communes trouvées:', communes.length);
+        
         displaySuggestions(communes);
     } catch (error) {
         console.error('Erreur recherche communes:', error);
@@ -53,71 +112,79 @@ async function searchCommunes(query) {
 }
 
 function displaySuggestions(communes) {
+    const suggestionsDiv = document.getElementById('suggestions');
+    
     if (communes.length === 0) {
         suggestionsDiv.classList.remove('active');
+        suggestionsDiv.innerHTML = '';
         return;
     }
     
-    suggestionsDiv.innerHTML = communes.map(commune => {
-        const communeJson = JSON.stringify(commune).replace(/"/g, '&quot;');
-        return `
-            <div class="suggestion-item" data-commune="${communeJson}">
-                <strong>${commune.nom}</strong> (${commune.code})
-                ${commune.codesPostaux ? `<br><small>${commune.codesPostaux.join(', ')}</small>` : ''}
-            </div>
+    suggestionsDiv.innerHTML = '';
+    
+    communes.forEach(commune => {
+        const div = document.createElement('div');
+        div.className = 'suggestion-item';
+        div.innerHTML = `
+            <strong>${commune.nom}</strong> (${commune.code})
+            ${commune.codesPostaux ? `<br><small>${commune.codesPostaux.join(', ')}</small>` : ''}
         `;
-    }).join('');
-    
-    suggestionsDiv.classList.add('active');
-    
-    // Gestion des clics sur les suggestions
-    document.querySelectorAll('.suggestion-item').forEach(item => {
-        item.addEventListener('click', () => {
-            const communeJson = item.dataset.commune.replace(/&quot;/g, '"');
-            const commune = JSON.parse(communeJson);
+        
+        div.addEventListener('click', () => {
             selectCommune(commune);
         });
+        
+        suggestionsDiv.appendChild(div);
     });
+    
+    suggestionsDiv.classList.add('active');
+    console.log('Suggestions affichées');
 }
 
 function selectCommune(commune) {
+    console.log('Commune sélectionnée:', commune.nom);
+    
     selectedCommune = commune;
+    
+    const communeSearch = document.getElementById('commune-search');
     communeSearch.value = `${commune.nom} (${commune.code})`;
+    
+    const suggestionsDiv = document.getElementById('suggestions');
     suggestionsDiv.classList.remove('active');
+    suggestionsDiv.innerHTML = '';
     
     // Afficher la commune sur la carte
     if (communeLayer) {
         map.removeLayer(communeLayer);
     }
     
-    if (commune.contour) {
-        communeLayer = L.geoJSON(commune.contour, {
-            style: {
-                color: '#3388ff',
-                weight: 3,
-                fillOpacity: 0.1
-            }
-        }).addTo(map);
-        
-        map.fitBounds(communeLayer.getBounds());
-    } else if (commune.centre) {
-        map.setView([commune.centre.coordinates[1], commune.centre.coordinates[0]], 13);
+    try {
+        if (commune.contour) {
+            communeLayer = L.geoJSON(commune.contour, {
+                style: {
+                    color: '#3388ff',
+                    weight: 3,
+                    fillOpacity: 0.1
+                }
+            }).addTo(map);
+            
+            map.fitBounds(communeLayer.getBounds());
+            console.log('Contour de la commune affiché');
+        } else if (commune.centre) {
+            const coords = commune.centre.coordinates;
+            map.setView([coords[1], coords[0]], 13);
+            console.log('Centré sur la commune');
+        }
+    } catch (error) {
+        console.error('Erreur affichage commune:', error);
     }
     
     updateInfo(`Commune sélectionnée : <strong>${commune.nom}</strong><br>Code INSEE : ${commune.code}`);
 }
 
-// Fermer les suggestions en cliquant ailleurs
-document.addEventListener('click', (e) => {
-    if (!e.target.closest('#commune-search') && !e.target.closest('#suggestions')) {
-        suggestionsDiv.classList.remove('active');
-    }
-});
-
-// Extraction des données WFS
-document.getElementById('extract-btn').addEventListener('click', extractWFSData);
-
 async function extractWFSData() {
+    console.log('Début extraction');
+    
     if (!selectedCommune) {
         showStatus('Veuillez d\'abord sélectionner une commune', 'error');
         return;
@@ -126,12 +193,13 @@ async function extractWFSData() {
     const layer = document.getElementById('layer-select').value;
     const featureLimit = document.getElementById('feature-limit').value;
     
+    console.log('Couche:', layer);
+    console.log('Limite:', featureLimit);
+    
     // Avertissement pour les grandes extractions
     if (featureLimit === 'unlimited' || parseInt(featureLimit) > 25000) {
         const confirmed = confirm(
-            `Vous allez extraire jusqu'à ${featureLimit === 'unlimited' ? 'un nombre illimité' : featureLimit} d'entités.\n\n` +
-            `Cela peut prendre du temps et ralentir votre navigateur.\n\n` +
-            `Voulez-vous continuer ?`
+            `Vous allez extraire jusqu'à ${featureLimit === 'unlimited' ? 'un nombre illimité' : featureLimit} d'entités.\n\nCela peut prendre du temps.\n\nVoulez-vous continuer ?`
         );
         
         if (!confirmed) {
@@ -139,70 +207,48 @@ async function extractWFSData() {
         }
     }
     
-    showStatus('Extraction des données en cours... Veuillez patienter.', 'loading');
+    showStatus('Extraction des données en cours...', 'loading');
     
     try {
         // Obtenir la bbox de la commune
         const bounds = getBBoxFromCommune(selectedCommune);
         
         if (!bounds) {
-            showStatus('Impossible de déterminer les limites de la commune', 'error');
-            return;
+            throw new Error('Impossible de déterminer les limites de la commune');
         }
         
-        console.log('Bounds de la commune:', bounds);
+        console.log('BBOX:', bounds);
         
-        // Construction de la requête WFS avec BBOX
+        // Construction de la requête WFS
+        const bboxString = `${bounds.minLon},${bounds.minLat},${bounds.maxLon},${bounds.maxLat},EPSG:4326`;
+        
         const params = new URLSearchParams({
             service: 'WFS',
             version: '2.0.0',
             request: 'GetFeature',
             typeName: layer,
             outputFormat: 'application/json',
-            srsName: 'EPSG:4326'
+            srsName: 'EPSG:4326',
+            bbox: bboxString
         });
         
-        // Utiliser BBOX pour limiter la zone de recherche
-        const bboxString = `${bounds.minLon},${bounds.minLat},${bounds.maxLon},${bounds.maxLat},EPSG:4326`;
-        params.append('bbox', bboxString);
-        
-        // Limiter le nombre de résultats selon la sélection
         if (featureLimit !== 'unlimited') {
             params.append('count', featureLimit);
         }
         
         const url = `${WFS_URL}?${params.toString()}`;
-        
-        console.log('URL de requête WFS:', url);
-        console.log('BBOX:', bboxString);
-        console.log('Limite de features:', featureLimit);
+        console.log('URL WFS:', url);
         
         const response = await fetch(url);
         
         if (!response.ok) {
             const errorText = await response.text();
-            console.error('Réponse serveur complète:', errorText);
-            
-            // Essayer de parser l'erreur XML du WFS
-            if (errorText.includes('ExceptionReport') || errorText.includes('ServiceException')) {
-                const parser = new DOMParser();
-                const xmlDoc = parser.parseFromString(errorText, 'text/xml');
-                const exceptionText = xmlDoc.querySelector('ExceptionText, ServiceException');
-                if (exceptionText) {
-                    throw new Error(`Erreur WFS: ${exceptionText.textContent}`);
-                }
-            }
-            
+            console.error('Erreur serveur:', errorText);
             throw new Error(`Erreur HTTP ${response.status}`);
         }
         
-        const contentType = response.headers.get('content-type');
-        console.log('Content-Type:', contentType);
-        
         const data = await response.json();
-        
-        console.log('Données reçues:', data);
-        console.log('Nombre de features:', data.features ? data.features.length : 0);
+        console.log('Données reçues:', data.features ? data.features.length : 0, 'features');
         
         if (!data.features || data.features.length === 0) {
             showStatus('Aucune donnée trouvée pour cette commune et cette couche', 'error');
@@ -210,59 +256,37 @@ async function extractWFSData() {
                 <strong>Aucun résultat</strong><br>
                 Commune : ${selectedCommune.nom}<br>
                 Couche : ${layer.split(':')[1]}<br>
-                BBOX : ${bboxString}<br>
-                <small>Essayez une autre couche ou vérifiez que des données existent pour cette zone.</small>
+                <small>Essayez une autre couche.</small>
             `);
             return;
         }
         
-        // Filtrer les données qui intersectent réellement la commune (filtrage côté client)
-        const filteredData = filterDataByCommune(data, selectedCommune);
+        extractedData = data;
+        displayExtractedData(data);
         
-        displayExtractedData(filteredData);
-        extractedData = filteredData;
-        
-        // Message avec avertissement si limite atteinte
-        let statusMessage = `✅ ${filteredData.features.length.toLocaleString('fr-FR')} entité(s) extraite(s) avec succès`;
-        if (featureLimit !== 'unlimited' && filteredData.features.length >= parseInt(featureLimit)) {
-            statusMessage += ` (limite de ${parseInt(featureLimit).toLocaleString('fr-FR')} atteinte, il peut y avoir plus de données)`;
-        }
-        
-        showStatus(statusMessage, 'success');
+        const count = data.features.length;
+        showStatus(`✅ ${count.toLocaleString('fr-FR')} entité(s) extraite(s)`, 'success');
         
         document.getElementById('export-geojson').disabled = false;
         
-        // Mettre à jour les informations
-        let infoMessage = `
+        updateInfo(`
             <strong>Extraction réussie !</strong><br>
             Commune : ${selectedCommune.nom}<br>
             Couche : ${layer.split(':')[1]}<br>
-            Nombre d'entités : ${filteredData.features.length.toLocaleString('fr-FR')}
-        `;
-        
-        if (featureLimit !== 'unlimited' && filteredData.features.length >= parseInt(featureLimit)) {
-            infoMessage += `<br><br><small style="color: #f39c12;">⚠️ Limite atteinte. Augmentez la limite ou utilisez "Illimité" pour voir toutes les données.</small>`;
-        }
-        
-        updateInfo(infoMessage);
+            Entités : ${count.toLocaleString('fr-FR')}
+        `);
         
     } catch (error) {
-        console.error('Erreur extraction WFS:', error);
-        showStatus(`Erreur lors de l'extraction : ${error.message}`, 'error');
-        updateInfo(`
-            <strong>⚠️ Erreur</strong><br>
-            ${error.message}<br>
-            <small>Consultez la console du navigateur (F12) pour plus de détails.</small>
-        `);
+        console.error('Erreur extraction:', error);
+        showStatus(`Erreur : ${error.message}`, 'error');
     }
 }
 
 function getBBoxFromCommune(commune) {
     if (!commune.contour) {
-        // Si pas de contour, utiliser le centre avec une petite bbox
         if (commune.centre) {
             const [lon, lat] = commune.centre.coordinates;
-            const delta = 0.05; // ~5km
+            const delta = 0.05;
             return {
                 minLon: lon - delta,
                 minLat: lat - delta,
@@ -273,14 +297,13 @@ function getBBoxFromCommune(commune) {
         return null;
     }
     
-    // Calculer la bbox à partir du contour
     let minLon = Infinity, minLat = Infinity;
     let maxLon = -Infinity, maxLat = -Infinity;
     
-    const processCoordinates = (coords) => {
+    const processCoords = (coords) => {
         coords.forEach(coord => {
             if (Array.isArray(coord[0])) {
-                processCoordinates(coord);
+                processCoords(coord);
             } else {
                 const [lon, lat] = coord;
                 minLon = Math.min(minLon, lon);
@@ -291,28 +314,18 @@ function getBBoxFromCommune(commune) {
         });
     };
     
-    processCoordinates(commune.contour.coordinates);
+    processCoords(commune.contour.coordinates);
     
     return { minLon, minLat, maxLon, maxLat };
 }
 
-function filterDataByCommune(data, commune) {
-    // Pour un filtrage précis, on pourrait utiliser turf.js
-    // Ici, on retourne toutes les features dans la bbox
-    // car le serveur a déjà fait un pré-filtrage spatial
-    return {
-        type: 'FeatureCollection',
-        features: data.features
-    };
-}
-
 function displayExtractedData(data) {
-    // Supprimer la couche précédente
+    console.log('Affichage des données');
+    
     if (extractedDataLayer) {
         map.removeLayer(extractedDataLayer);
     }
     
-    // Déterminer le style selon le type de géométrie
     const layerType = document.getElementById('layer-select').value.split(':')[1];
     const style = getStyleForLayer(layerType);
     
@@ -322,36 +335,26 @@ function displayExtractedData(data) {
             return L.circleMarker(latlng, style.pointStyle);
         },
         onEachFeature: (feature, layer) => {
-            // Popup avec les propriétés
             const props = feature.properties;
-            let popupContent = '<div style="max-width: 300px; max-height: 300px; overflow-y: auto;">';
-            popupContent += `<h4 style="margin-bottom: 10px; color: #0066cc;">${layerType}</h4>`;
+            let content = `<div style="max-width: 300px;"><h4 style="color: #0066cc;">${layerType}</h4>`;
             
-            // Afficher les propriétés principales
             let count = 0;
             for (const [key, value] of Object.entries(props)) {
-                if (value && key !== 'geometry' && count < 15) {
-                    const displayKey = key.replace(/_/g, ' ');
-                    popupContent += `<div style="margin-bottom: 5px;"><strong>${displayKey}:</strong> ${value}</div>`;
+                if (value && count < 10) {
+                    content += `<div><strong>${key}:</strong> ${value}</div>`;
                     count++;
                 }
             }
             
-            if (Object.keys(props).length > 15) {
-                popupContent += `<div style="margin-top: 10px; font-style: italic; color: #666;">... et ${Object.keys(props).length - 15} autres propriétés</div>`;
-            }
-            
-            popupContent += '</div>';
-            layer.bindPopup(popupContent);
+            content += '</div>';
+            layer.bindPopup(content);
         }
     }).addTo(map);
     
-    // Zoomer sur les données
     if (extractedDataLayer.getBounds().isValid()) {
         map.fitBounds(extractedDataLayer.getBounds(), { padding: [50, 50] });
     }
     
-    // Mettre à jour la légende
     updateLegend(layerType, style);
 }
 
@@ -370,7 +373,7 @@ function getStyleForLayer(layerType) {
             pointStyle: { radius: 4, fillColor: '#e67e22', color: '#d35400', weight: 1, fillOpacity: 0.7 }
         },
         troncon_hydrographique: {
-            style: { color: '#3498db', weight: 2, fillOpacity: 0.3, fillColor: '#3498db' },
+            style: { color: '#3498db', weight: 2, fillOpacity: 0 },
             pointStyle: { radius: 4, fillColor: '#3498db', color: '#2980b9', weight: 1, fillOpacity: 0.7 }
         },
         plan_d_eau: {
@@ -418,8 +421,7 @@ function updateLegend(layerType, style) {
     `;
 }
 
-// Export GeoJSON
-document.getElementById('export-geojson').addEventListener('click', () => {
+function exportGeoJSON() {
     if (!extractedData) return;
     
     const dataStr = JSON.stringify(extractedData, null, 2);
@@ -435,29 +437,26 @@ document.getElementById('export-geojson').addEventListener('click', () => {
     a.click();
     
     URL.revokeObjectURL(url);
-    
-    showStatus('✅ Fichier GeoJSON téléchargé !', 'success');
-});
+    showStatus('✅ Fichier téléchargé !', 'success');
+}
 
-// Fonctions utilitaires
 function showStatus(message, type) {
     const status = document.getElementById('status');
-    status.textContent = message;
-    status.className = `status active ${type}`;
-    
-    if (type === 'success') {
-        setTimeout(() => {
-            status.classList.remove('active');
-        }, 5000);
+    if (status) {
+        status.textContent = message;
+        status.className = `status active ${type}`;
+        
+        if (type === 'success') {
+            setTimeout(() => {
+                status.classList.remove('active');
+            }, 5000);
+        }
     }
 }
 
 function updateInfo(html) {
-    document.getElementById('info-content').innerHTML = html;
+    const infoContent = document.getElementById('info-content');
+    if (infoContent) {
+        infoContent.innerHTML = html;
+    }
 }
-
-// Initialisation
-document.addEventListener('DOMContentLoaded', () => {
-    initMap();
-    updateInfo('<p>👋 Bienvenue ! Commencez par rechercher une commune ci-dessus.</p>');
-});
