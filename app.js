@@ -217,60 +217,10 @@ async function extractWFSData() {
         
         console.log('BBOX:', bounds);
         
-        // Construction de la requête WFS avec startIndex pour pagination
         const bboxString = `${bounds.minLon},${bounds.minLat},${bounds.maxLon},${bounds.maxLat},EPSG:4326`;
         
-        let allFeatures = [];
-        let startIndex = 0;
-        const pageSize = 1000; // Taille des pages pour la pagination
-        const maxLimit = featureLimit === 'unlimited' ? 100000 : parseInt(featureLimit);
-        
-        let hasMore = true;
-        
-        while (hasMore && allFeatures.length < maxLimit) {
-            const params = new URLSearchParams({
-                service: 'WFS',
-                version: '2.0.0',
-                request: 'GetFeature',
-                typeName: layer,
-                outputFormat: 'application/json',
-                srsName: 'EPSG:4326',
-                bbox: bboxString,
-                startIndex: startIndex.toString(),
-                count: Math.min(pageSize, maxLimit - allFeatures.length).toString()
-            });
-            
-            const url = `${WFS_URL}?${params.toString()}`;
-            console.log(`Requête WFS (page ${Math.floor(startIndex/pageSize) + 1}):`, url);
-            
-            const response = await fetch(url);
-            
-            if (!response.ok) {
-                const errorText = await response.text();
-                console.error('Erreur serveur:', errorText);
-                throw new Error(`Erreur HTTP ${response.status}`);
-            }
-            
-            const data = await response.json();
-            const featuresCount = data.features ? data.features.length : 0;
-            
-            console.log(`Page ${Math.floor(startIndex/pageSize) + 1}: ${featuresCount} features reçues`);
-            
-            if (featuresCount === 0) {
-                hasMore = false;
-            } else {
-                allFeatures = allFeatures.concat(data.features);
-                startIndex += featuresCount;
-                
-                // Si on a reçu moins que pageSize, c'est qu'il n'y a plus de données
-                if (featuresCount < pageSize) {
-                    hasMore = false;
-                }
-                
-                // Mise à jour du statut
-                showStatus(`Extraction en cours... ${allFeatures.length.toLocaleString('fr-FR')} entité(s)`, 'loading');
-            }
-        }
+        // Extraction avec pagination
+        const allFeatures = await extractAllFeatures(layer, bboxString, featureLimit);
         
         console.log(`Total récupéré: ${allFeatures.length} features`);
         
@@ -337,6 +287,89 @@ async function extractWFSData() {
         console.error('Erreur extraction:', error);
         showStatus(`Erreur : ${error.message}`, 'error');
     }
+}
+
+async function extractAllFeatures(layer, bboxString, featureLimit) {
+    const allFeatures = [];
+    let startIndex = 0;
+    const batchSize = 1000; // Taille de chaque requête
+    const maxLimit = featureLimit === 'unlimited' ? 100000 : parseInt(featureLimit);
+    
+    let consecutiveEmptyResponses = 0;
+    const maxEmptyResponses = 3;
+    
+    while (allFeatures.length < maxLimit && consecutiveEmptyResponses < maxEmptyResponses) {
+        try {
+            const params = new URLSearchParams({
+                service: 'WFS',
+                version: '2.0.0',
+                request: 'GetFeature',
+                typeName: layer,
+                outputFormat: 'application/json',
+                srsName: 'EPSG:4326',
+                bbox: bboxString,
+                startIndex: startIndex.toString(),
+                count: batchSize.toString()
+            });
+            
+            const url = `${WFS_URL}?${params.toString()}`;
+            console.log(`Requête batch ${Math.floor(startIndex/batchSize) + 1}, startIndex=${startIndex}`);
+            
+            const response = await fetch(url);
+            
+            if (!response.ok) {
+                console.error(`Erreur HTTP ${response.status} pour startIndex ${startIndex}`);
+                break;
+            }
+            
+            const data = await response.json();
+            const featuresCount = data.features ? data.features.length : 0;
+            
+            console.log(`Batch ${Math.floor(startIndex/batchSize) + 1}: ${featuresCount} features reçues (total: ${allFeatures.length + featuresCount})`);
+            
+            if (featuresCount === 0) {
+                consecutiveEmptyResponses++;
+                console.log(`Réponse vide ${consecutiveEmptyResponses}/${maxEmptyResponses}`);
+                
+                // Si on n'a rien reçu mais qu'on n'a pas encore atteint la limite, 
+                // peut-être que le serveur a une limite, on arrête
+                if (allFeatures.length > 0) {
+                    console.log('Arrêt: plus de données disponibles');
+                    break;
+                }
+            } else {
+                consecutiveEmptyResponses = 0;
+                allFeatures.push(...data.features);
+                
+                // Mise à jour du statut
+                showStatus(
+                    `Extraction en cours... ${allFeatures.length.toLocaleString('fr-FR')} / ${maxLimit === 100000 ? '∞' : maxLimit.toLocaleString('fr-FR')} entité(s)`, 
+                    'loading'
+                );
+                
+                // Si on a reçu moins que batchSize, c'est probablement la dernière page
+                if (featuresCount < batchSize) {
+                    console.log('Dernière page atteinte (moins de features que demandé)');
+                    break;
+                }
+            }
+            
+            startIndex += batchSize;
+            
+            // Petite pause pour ne pas surcharger le serveur
+            await new Promise(resolve => setTimeout(resolve, 100));
+            
+        } catch (error) {
+            console.error(`Erreur lors de la requête batch ${Math.floor(startIndex/batchSize) + 1}:`, error);
+            break;
+        }
+    }
+    
+    if (consecutiveEmptyResponses >= maxEmptyResponses) {
+        console.log('Arrêt: trop de réponses vides consécutives');
+    }
+    
+    return allFeatures;
 }
 
 function filterByCommuneBoundary(data, communeBoundary) {
