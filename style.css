@@ -102,6 +102,12 @@ header {
     cursor: pointer;
     color: #999;
     transition: color 0.3s;
+    line-height: 1;
+    width: 40px;
+    height: 40px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
 }
 
 .help-close:hover {
@@ -112,6 +118,7 @@ header {
     color: var(--primary-color);
     margin-bottom: 1.5rem;
     font-size: 1.5rem;
+    padding-right: 2rem;
 }
 
 .help-steps {
@@ -122,6 +129,7 @@ header {
     display: flex;
     gap: 1rem;
     margin-bottom: 1.5rem;
+    align-items: flex-start;
 }
 
 .help-step-number {
@@ -135,23 +143,30 @@ header {
     align-items: center;
     justify-content: center;
     font-weight: 600;
+    font-size: 1.1rem;
+}
+
+.help-step-content {
+    flex: 1;
 }
 
 .help-step-content h3 {
     color: var(--primary-color);
     font-size: 1rem;
     margin-bottom: 0.25rem;
+    font-weight: 600;
 }
 
 .help-step-content p {
     font-size: 0.9rem;
     color: #666;
     margin: 0;
+    line-height: 1.5;
 }
 
 .help-info {
     background: var(--light-bg);
-    padding: 1rem;
+    padding: 1.25rem;
     border-radius: 6px;
     border-left: 4px solid var(--primary-color);
 }
@@ -160,17 +175,32 @@ header {
     color: var(--primary-color);
     font-size: 1rem;
     margin-bottom: 0.75rem;
+    font-weight: 600;
 }
 
 .help-info ul {
     list-style: none;
     padding: 0;
+    margin: 0;
 }
 
 .help-info li {
-    padding: 0.25rem 0;
+    padding: 0.4rem 0;
     font-size: 0.9rem;
     color: #666;
+    line-height: 1.5;
+}
+
+/* Responsive pour le panneau d'aide */
+@media (max-width: 576px) {
+    .help-panel {
+        width: 100%;
+        right: -100%;
+    }
+    
+    .help-content {
+        padding: 1.5rem;
+    }
 }
 
 /* Container */
@@ -569,3 +599,4 @@ footer a:hover {
         padding: 0.75rem;
     }
 }
+
