@@ -192,9 +192,11 @@ async function extractWFSData() {
     
     const layer = document.getElementById('layer-select').value;
     const featureLimit = document.getElementById('feature-limit').value;
+    const useSpatialFilter = document.getElementById('spatial-filter').checked;
     
     console.log('Couche:', layer);
     console.log('Limite:', featureLimit);
+    console.log('Filtrage spatial:', useSpatialFilter);
     
     // Avertissement pour les grandes extractions
     if (featureLimit === 'unlimited' || parseInt(featureLimit) > 25000) {
@@ -261,25 +263,101 @@ async function extractWFSData() {
             return;
         }
         
-        extractedData = data;
-        displayExtractedData(data);
+        // Filtrage spatial si activé
+        let filteredData = data;
+        let removedCount = 0;
         
-        const count = data.features.length;
-        showStatus(`✅ ${count.toLocaleString('fr-FR')} entité(s) extraite(s)`, 'success');
+        if (useSpatialFilter && selectedCommune.contour) {
+            showStatus('Filtrage spatial en cours...', 'loading');
+            console.log('Application du filtrage spatial avec Turf.js');
+            
+            const result = filterByCommuneBoundary(data, selectedCommune.contour);
+            filteredData = result.filteredData;
+            removedCount = result.removedCount;
+            
+            console.log(`Filtrage terminé: ${removedCount} entités hors commune supprimées`);
+        }
+        
+        extractedData = filteredData;
+        displayExtractedData(filteredData);
+        
+        const count = filteredData.features.length;
+        let statusMessage = `✅ ${count.toLocaleString('fr-FR')} entité(s) extraite(s)`;
+        
+        if (useSpatialFilter && removedCount > 0) {
+            statusMessage += ` (${removedCount} entité(s) hors commune filtrée(s))`;
+        }
+        
+        showStatus(statusMessage, 'success');
         
         document.getElementById('export-geojson').disabled = false;
         
-        updateInfo(`
+        let infoMessage = `
             <strong>Extraction réussie !</strong><br>
             Commune : ${selectedCommune.nom}<br>
             Couche : ${layer.split(':')[1]}<br>
-            Entités : ${count.toLocaleString('fr-FR')}
-        `);
+            Entités extraites : ${count.toLocaleString('fr-FR')}
+        `;
+        
+        if (useSpatialFilter && removedCount > 0) {
+            infoMessage += `<br>Entités filtrées : ${removedCount.toLocaleString('fr-FR')}`;
+        }
+        
+        updateInfo(infoMessage);
         
     } catch (error) {
         console.error('Erreur extraction:', error);
         showStatus(`Erreur : ${error.message}`, 'error');
     }
+}
+
+function filterByCommuneBoundary(data, communeBoundary) {
+    const communePolygon = turf.polygon(communeBoundary.coordinates);
+    const filteredFeatures = [];
+    let removedCount = 0;
+    
+    data.features.forEach(feature => {
+        try {
+            let isInside = false;
+            
+            // Gérer différents types de géométries
+            if (feature.geometry.type === 'Point') {
+                isInside = turf.booleanPointInPolygon(feature.geometry, communePolygon);
+            } else if (feature.geometry.type === 'LineString') {
+                // Pour les lignes, vérifier si au moins une partie intersecte
+                isInside = turf.booleanIntersects(feature.geometry, communePolygon);
+            } else if (feature.geometry.type === 'Polygon' || feature.geometry.type === 'MultiPolygon') {
+                // Pour les polygones, vérifier l'intersection
+                isInside = turf.booleanIntersects(feature.geometry, communePolygon);
+            } else if (feature.geometry.type === 'MultiLineString') {
+                isInside = turf.booleanIntersects(feature.geometry, communePolygon);
+            } else if (feature.geometry.type === 'MultiPoint') {
+                // Pour MultiPoint, vérifier si au moins un point est dans le polygone
+                const points = turf.multiPoint(feature.geometry.coordinates);
+                isInside = feature.geometry.coordinates.some(coord => 
+                    turf.booleanPointInPolygon(turf.point(coord), communePolygon)
+                );
+            }
+            
+            if (isInside) {
+                filteredFeatures.push(feature);
+            } else {
+                removedCount++;
+            }
+        } catch (error) {
+            console.warn('Erreur lors du filtrage spatial d\'une entité:', error);
+            // En cas d'erreur, on conserve l'entité
+            filteredFeatures.push(feature);
+        }
+    });
+    
+    return {
+        filteredData: {
+            type: 'FeatureCollection',
+            features: filteredFeatures
+        },
+        removedCount: removedCount
+    };
 }
 
 function getBBoxFromCommune(commune) {
@@ -336,7 +414,7 @@ function displayExtractedData(data) {
         },
         onEachFeature: (feature, layer) => {
             const props = feature.properties;
-            let content = `<div style="max-width: 300px;"><h4 style="color: #0066cc;">${layerType}</h4>`;
+            let content = `<div style="max-width: 300px;"><h4 style="color: #008B8B;">${layerType}</h4>`;
             
             let count = 0;
             for (const [key, value] of Object.entries(props)) {
