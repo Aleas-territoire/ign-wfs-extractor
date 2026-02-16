@@ -215,12 +215,12 @@ async function extractWFSData() {
             throw new Error('Impossible de déterminer les limites de la commune');
         }
         
-        console.log('BBOX:', bounds);
+        console.log('BBOX principale:', bounds);
         
-        const bboxString = `${bounds.minLon},${bounds.minLat},${bounds.maxLon},${bounds.maxLat},EPSG:4326`;
+        const maxLimit = featureLimit === 'unlimited' ? 1000000 : parseInt(featureLimit);
         
-        // Extraction avec pagination
-        const allFeatures = await extractAllFeatures(layer, bboxString, featureLimit);
+        // Stratégie de subdivision spatiale pour contourner les limites serveur
+        const allFeatures = await extractWithSpatialSubdivision(layer, bounds, maxLimit);
         
         console.log(`Total récupéré: ${allFeatures.length} features`);
         
@@ -235,9 +235,13 @@ async function extractWFSData() {
             return;
         }
         
+        // Supprimer les doublons (features avec même ID)
+        const uniqueFeatures = removeDuplicateFeatures(allFeatures);
+        console.log(`Après dédoublonnage: ${uniqueFeatures.length} features uniques`);
+        
         const allData = {
             type: 'FeatureCollection',
-            features: allFeatures
+            features: uniqueFeatures
         };
         
         // Filtrage spatial si activé
@@ -273,7 +277,7 @@ async function extractWFSData() {
             <strong>Extraction réussie !</strong><br>
             Commune : ${selectedCommune.nom}<br>
             Couche : ${layer.split(':')[1]}<br>
-            Entités dans la bbox : ${allFeatures.length.toLocaleString('fr-FR')}<br>
+            Entités récupérées : ${uniqueFeatures.length.toLocaleString('fr-FR')}<br>
             Entités dans la commune : ${count.toLocaleString('fr-FR')}
         `;
         
@@ -289,16 +293,80 @@ async function extractWFSData() {
     }
 }
 
-async function extractAllFeatures(layer, bboxString, featureLimit) {
+// Fonction pour subdiviser l'espace et extraire les données
+async function extractWithSpatialSubdivision(layer, bounds, maxLimit) {
+    const allFeatures = [];
+    const MAX_FEATURES_PER_REQUEST = 10000; // Limite serveur estimée
+    
+    // Commencer par essayer avec la bbox complète
+    console.log('Tentative d\'extraction avec bbox complète...');
+    const initialFeatures = await extractFromBBox(layer, bounds, MAX_FEATURES_PER_REQUEST);
+    
+    // Si on a moins que la limite, on a tout récupéré
+    if (initialFeatures.length < MAX_FEATURES_PER_REQUEST && initialFeatures.length < maxLimit) {
+        console.log('Extraction complète avec une seule requête');
+        return initialFeatures;
+    }
+    
+    console.log(`${initialFeatures.length} features récupérées, subdivision nécessaire...`);
+    
+    // Sinon, subdiviser en grille 2x2
+    const subBBoxes = subdivideBBox(bounds, 2, 2);
+    console.log(`Subdivision en ${subBBoxes.length} sous-zones`);
+    
+    for (let i = 0; i < subBBoxes.length; i++) {
+        if (allFeatures.length >= maxLimit) {
+            console.log(`Limite de ${maxLimit} atteinte, arrêt de l'extraction`);
+            break;
+        }
+        
+        const subBBox = subBBoxes[i];
+        showStatus(
+            `Extraction zone ${i + 1}/${subBBoxes.length}... ${allFeatures.length.toLocaleString('fr-FR')} entité(s)`,
+            'loading'
+        );
+        
+        const features = await extractFromBBox(layer, subBBox, maxLimit - allFeatures.length);
+        allFeatures.push(...features);
+        
+        console.log(`Zone ${i + 1}/${subBBoxes.length}: ${features.length} features (total: ${allFeatures.length})`);
+        
+        // Petite pause entre les requêtes
+        await new Promise(resolve => setTimeout(resolve, 200));
+    }
+    
+    return allFeatures;
+}
+
+// Subdiviser une bbox en grille
+function subdivideBBox(bounds, cols, rows) {
+    const subBBoxes = [];
+    const width = (bounds.maxLon - bounds.minLon) / cols;
+    const height = (bounds.maxLat - bounds.minLat) / rows;
+    
+    for (let row = 0; row < rows; row++) {
+        for (let col = 0; col < cols; col++) {
+            subBBoxes.push({
+                minLon: bounds.minLon + col * width,
+                maxLon: bounds.minLon + (col + 1) * width,
+                minLat: bounds.minLat + row * height,
+                maxLat: bounds.minLat + (row + 1) * height
+            });
+        }
+    }
+    
+    return subBBoxes;
+}
+
+// Extraire les features d'une bbox donnée avec pagination
+async function extractFromBBox(layer, bounds, maxFeatures) {
     const allFeatures = [];
     let startIndex = 0;
-    const batchSize = 1000; // Taille de chaque requête
-    const maxLimit = featureLimit === 'unlimited' ? 100000 : parseInt(featureLimit);
+    const batchSize = 1000;
     
-    let consecutiveEmptyResponses = 0;
-    const maxEmptyResponses = 3;
+    const bboxString = `${bounds.minLon},${bounds.minLat},${bounds.maxLon},${bounds.maxLat},EPSG:4326`;
     
-    while (allFeatures.length < maxLimit && consecutiveEmptyResponses < maxEmptyResponses) {
+    while (allFeatures.length < maxFeatures) {
         try {
             const params = new URLSearchParams({
                 service: 'WFS',
@@ -309,67 +377,61 @@ async function extractAllFeatures(layer, bboxString, featureLimit) {
                 srsName: 'EPSG:4326',
                 bbox: bboxString,
                 startIndex: startIndex.toString(),
-                count: batchSize.toString()
+                count: Math.min(batchSize, maxFeatures - allFeatures.length).toString()
             });
             
             const url = `${WFS_URL}?${params.toString()}`;
-            console.log(`Requête batch ${Math.floor(startIndex/batchSize) + 1}, startIndex=${startIndex}`);
-            
             const response = await fetch(url);
             
             if (!response.ok) {
-                console.error(`Erreur HTTP ${response.status} pour startIndex ${startIndex}`);
+                console.error(`Erreur HTTP ${response.status}`);
                 break;
             }
             
             const data = await response.json();
             const featuresCount = data.features ? data.features.length : 0;
             
-            console.log(`Batch ${Math.floor(startIndex/batchSize) + 1}: ${featuresCount} features reçues (total: ${allFeatures.length + featuresCount})`);
-            
             if (featuresCount === 0) {
-                consecutiveEmptyResponses++;
-                console.log(`Réponse vide ${consecutiveEmptyResponses}/${maxEmptyResponses}`);
-                
-                // Si on n'a rien reçu mais qu'on n'a pas encore atteint la limite, 
-                // peut-être que le serveur a une limite, on arrête
-                if (allFeatures.length > 0) {
-                    console.log('Arrêt: plus de données disponibles');
-                    break;
-                }
-            } else {
-                consecutiveEmptyResponses = 0;
-                allFeatures.push(...data.features);
-                
-                // Mise à jour du statut
-                showStatus(
-                    `Extraction en cours... ${allFeatures.length.toLocaleString('fr-FR')} / ${maxLimit === 100000 ? '∞' : maxLimit.toLocaleString('fr-FR')} entité(s)`, 
-                    'loading'
-                );
-                
-                // Si on a reçu moins que batchSize, c'est probablement la dernière page
-                if (featuresCount < batchSize) {
-                    console.log('Dernière page atteinte (moins de features que demandé)');
-                    break;
-                }
+                break;
+            }
+            
+            allFeatures.push(...data.features);
+            
+            // Si on a reçu moins que batchSize, c'est la dernière page
+            if (featuresCount < batchSize) {
+                break;
             }
             
             startIndex += batchSize;
             
-            // Petite pause pour ne pas surcharger le serveur
+            // Pause entre requêtes
             await new Promise(resolve => setTimeout(resolve, 100));
             
         } catch (error) {
-            console.error(`Erreur lors de la requête batch ${Math.floor(startIndex/batchSize) + 1}:`, error);
+            console.error('Erreur lors de l\'extraction:', error);
             break;
         }
     }
     
-    if (consecutiveEmptyResponses >= maxEmptyResponses) {
-        console.log('Arrêt: trop de réponses vides consécutives');
-    }
-    
     return allFeatures;
+}
+
+// Supprimer les doublons basés sur l'ID
+function removeDuplicateFeatures(features) {
+    const seen = new Set();
+    const unique = [];
+    
+    features.forEach(feature => {
+        // Utiliser l'ID de la feature si disponible, sinon créer une clé unique
+        const id = feature.id || feature.properties?.id || JSON.stringify(feature.geometry);
+        
+        if (!seen.has(id)) {
+            seen.add(id);
+            unique.push(feature);
+        }
+    });
+    
+    return unique;
 }
 
 function filterByCommuneBoundary(data, communeBoundary) {
@@ -404,7 +466,6 @@ function filterByCommuneBoundary(data, communeBoundary) {
                 const point = turf.point(feature.geometry.coordinates);
                 isInside = turf.booleanPointInPolygon(point, communePolygon);
             } else if (feature.geometry.type === 'MultiPoint') {
-                // Pour MultiPoint, vérifier si au moins un point est dans le polygone
                 isInside = feature.geometry.coordinates.some(coord => {
                     const point = turf.point(coord);
                     return turf.booleanPointInPolygon(point, communePolygon);
@@ -423,7 +484,6 @@ function filterByCommuneBoundary(data, communeBoundary) {
                 isInside = turf.booleanIntersects(multiPolygon, communePolygon);
             } else {
                 console.warn('Type de géométrie non supporté:', feature.geometry.type);
-                // En cas de type non supporté, on conserve l'entité
                 isInside = true;
             }
             
@@ -434,7 +494,6 @@ function filterByCommuneBoundary(data, communeBoundary) {
             }
         } catch (error) {
             console.warn('Erreur lors du filtrage spatial d\'une entité (index ' + index + '):', error);
-            // En cas d'erreur, on conserve l'entité par sécurité
             filteredFeatures.push(feature);
         }
     });
