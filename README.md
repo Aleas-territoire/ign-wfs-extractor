@@ -38,7 +38,7 @@ Accédez directement à l'application via GitHub Pages :
 
 ```
 
-https://\[votre-username].github.io/ign-wfs-extractor/
+(https://aleas-territoire.github.io/ign-wfs-extractor/)
 
 ```
 
@@ -52,7 +52,7 @@ https://\[votre-username].github.io/ign-wfs-extractor/
 
 ```bash
 
-git clone https://github.com/\[votre-username]/ign-wfs-extractor.git
+git clone https://aleas-territoire.github.io/ign-wfs-extractor/.git
 
 cd ign-wfs-extractor
 
@@ -259,5 +259,6 @@ Pour toute question ou suggestion, ouvrez une issue sur GitHub.
 
 
 Fait avec ❤️ pour la communauté SIG
+
 
 
