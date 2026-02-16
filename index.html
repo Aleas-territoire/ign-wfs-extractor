@@ -1,0 +1,144 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Extraction WFS BD TOPO IGN - Par Commune</title>
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <header>
+        <h1>🗺️ Extraction WFS BD TOPO IGN</h1>
+        <p class="subtitle">Interrogez la base de données géographiques de l'IGN par commune</p>
+    </header>
+
+    <main>
+        <div class="container">
+            <!-- Panneau de contrôle -->
+            <aside class="control-panel">
+                <div class="card">
+                    <h2>📍 Sélection de la commune</h2>
+                    
+                    <div class="form-group">
+                        <label for="commune-search">Rechercher une commune :</label>
+                        <input 
+                            type="text" 
+                            id="commune-search" 
+                            placeholder="Ex: Paris, Lyon..."
+                            autocomplete="off"
+                        >
+                        <div id="suggestions" class="suggestions"></div>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="layer-select">Couche BD TOPO :</label>
+                        <select id="layer-select">
+                            <option value="BDTOPO_V3:batiment">Bâtiments</option>
+                            <option value="BDTOPO_V3:route">Routes</option>
+                            <option value="BDTOPO_V3:troncon_de_route">Tronçons de route</option>
+                            <option value="BDTOPO_V3:cours_d_eau">Cours d'eau</option>
+                            <option value="BDTOPO_V3:surface_hydrographique">Surfaces hydrographiques</option>
+                            <option value="BDTOPO_V3:zone_de_vegetation">Zones de végétation</option>
+                            <option value="BDTOPO_V3:ligne_electrique">Lignes électriques</option>
+                            <option value="BDTOPO_V3:commune">Limites communales</option>
+                        </select>
+                    </div>
+
+                    <div class="form-group">
+                        <label>
+                            <input type="checkbox" id="limit-features" checked>
+                            Limiter à 1000 entités
+                        </label>
+                    </div>
+
+                    <button id="extract-btn" class="btn-primary">
+                        🔍 Extraire les données
+                    </button>
+
+                    <div id="status" class="status"></div>
+                </div>
+
+                <div class="card info-panel">
+                    <h3>ℹ️ Informations</h3>
+                    <div id="info-content">
+                        <p>Sélectionnez une commune et une couche pour commencer l'extraction.</p>
+                    </div>
+                </div>
+
+                <div class="card">
+                    <h3>💾 Export des données</h3>
+                    <button id="export-geojson" class="btn-secondary" disabled>
+                        📥 Télécharger GeoJSON
+                    </button>
+                </div>
+            </aside>
+
+            <!-- Carte -->
+            <section class="map-container">
+                <div id="map"></div>
+                <div class="map-legend">
+                    <h4>Légende</h4>
+                    <div id="legend-content">
+                        <div class="legend-item">
+                            <span class="legend-color" style="background: #3388ff;"></span>
+                            <span>Commune sélectionnée</span>
+                        </div>
+                    </div>
+                </div>
+            </section>
+        </div>
+
+        <!-- Section didactique -->
+        <section class="tutorial">
+            <div class="container-full">
+                <h2>📚 Comment utiliser cet outil ?</h2>
+                
+                <div class="tutorial-grid">
+                    <div class="tutorial-card">
+                        <div class="step-number">1</div>
+                        <h3>Rechercher une commune</h3>
+                        <p>Tapez le nom d'une commune française dans le champ de recherche. Des suggestions apparaîtront automatiquement.</p>
+                    </div>
+
+                    <div class="tutorial-card">
+                        <div class="step-number">2</div>
+                        <h3>Choisir une couche</h3>
+                        <p>Sélectionnez le type de données géographiques que vous souhaitez extraire (bâtiments, routes, cours d'eau, etc.).</p>
+                    </div>
+
+                    <div class="tutorial-card">
+                        <div class="step-number">3</div>
+                        <h3>Extraire les données</h3>
+                        <p>Cliquez sur "Extraire les données" pour interroger le service WFS de l'IGN et visualiser les résultats sur la carte.</p>
+                    </div>
+
+                    <div class="tutorial-card">
+                        <div class="step-number">4</div>
+                        <h3>Exporter</h3>
+                        <p>Téléchargez les données extraites au format GeoJSON pour les utiliser dans votre SIG préféré.</p>
+                    </div>
+                </div>
+
+                <div class="tech-info">
+                    <h3>🔧 Technologies utilisées</h3>
+                    <ul>
+                        <li><strong>API Découpage Administratif</strong> : Recherche de communes françaises</li>
+                        <li><strong>WFS BD TOPO v3 (IGN)</strong> : Service web de données géographiques</li>
+                        <li><strong>Leaflet</strong> : Bibliothèque de cartographie interactive</li>
+                        <li><strong>GeoJSON</strong> : Format d'échange de données géographiques</li>
+                    </ul>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <footer>
+        <p>Données © <a href="https://www.ign.fr" target="_blank">IGN</a> - BD TOPO® | 
+           Réalisé avec <a href="https://leafletjs.com" target="_blank">Leaflet</a></p>
+    </footer>
+
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    <script src="app.js"></script>
+</body>
+</html>
