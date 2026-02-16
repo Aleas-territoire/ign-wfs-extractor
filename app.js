@@ -58,19 +58,23 @@ function displaySuggestions(communes) {
         return;
     }
     
-    suggestionsDiv.innerHTML = communes.map(commune => `
-        <div class="suggestion-item" data-commune='${JSON.stringify(commune)}'>
-            <strong>${commune.nom}</strong> (${commune.code})
-            ${commune.codesPostaux ? `<br><small>${commune.codesPostaux.join(', ')}</small>` : ''}
-        </div>
-    `).join('');
+    suggestionsDiv.innerHTML = communes.map(commune => {
+        const communeJson = JSON.stringify(commune).replace(/"/g, '&quot;');
+        return `
+            <div class="suggestion-item" data-commune="${communeJson}">
+                <strong>${commune.nom}</strong> (${commune.code})
+                ${commune.codesPostaux ? `<br><small>${commune.codesPostaux.join(', ')}</small>` : ''}
+            </div>
+        `;
+    }).join('');
     
     suggestionsDiv.classList.add('active');
     
     // Gestion des clics sur les suggestions
     document.querySelectorAll('.suggestion-item').forEach(item => {
         item.addEventListener('click', () => {
-            const commune = JSON.parse(item.dataset.commune);
+            const communeJson = item.dataset.commune.replace(/&quot;/g, '"');
+            const commune = JSON.parse(communeJson);
             selectCommune(commune);
         });
     });
@@ -357,9 +361,9 @@ function getStyleForLayer(layerType) {
             style: { color: '#e74c3c', weight: 1, fillOpacity: 0.5, fillColor: '#e74c3c' },
             pointStyle: { radius: 5, fillColor: '#e74c3c', color: '#c0392b', weight: 1, fillOpacity: 0.7 }
         },
-        route: {
-            style: { color: '#f39c12', weight: 3, fillOpacity: 0 },
-            pointStyle: { radius: 4, fillColor: '#f39c12', color: '#e67e22', weight: 1, fillOpacity: 0.7 }
+        commune: {
+            style: { color: '#34495e', weight: 2, fillOpacity: 0.1, fillColor: '#34495e' },
+            pointStyle: { radius: 5, fillColor: '#34495e', color: '#2c3e50', weight: 1, fillOpacity: 0.7 }
         },
         troncon_de_route: {
             style: { color: '#e67e22', weight: 2, fillOpacity: 0 },
@@ -381,9 +385,13 @@ function getStyleForLayer(layerType) {
             style: { color: '#8e44ad', weight: 2, fillOpacity: 0, dashArray: '5, 5' },
             pointStyle: { radius: 4, fillColor: '#8e44ad', color: '#7d3c98', weight: 1, fillOpacity: 0.7 }
         },
-        commune: {
-            style: { color: '#34495e', weight: 2, fillOpacity: 0.1, fillColor: '#34495e' },
-            pointStyle: { radius: 5, fillColor: '#34495e', color: '#2c3e50', weight: 1, fillOpacity: 0.7 }
+        construction_lineaire: {
+            style: { color: '#95a5a6', weight: 2, fillOpacity: 0 },
+            pointStyle: { radius: 4, fillColor: '#95a5a6', color: '#7f8c8d', weight: 1, fillOpacity: 0.7 }
+        },
+        reservoir: {
+            style: { color: '#16a085', weight: 1, fillOpacity: 0.5, fillColor: '#16a085' },
+            pointStyle: { radius: 5, fillColor: '#16a085', color: '#138d75', weight: 1, fillOpacity: 0.7 }
         },
         default: {
             style: { color: '#9b59b6', weight: 2, fillOpacity: 0.3, fillColor: '#9b59b6' },
