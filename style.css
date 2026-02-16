@@ -221,6 +221,7 @@ header {
     gap: 1rem;
     overflow-y: auto;
     padding-right: 0.5rem;
+    max-height: 100%;
 }
 
 .control-panel::-webkit-scrollbar {
@@ -234,6 +235,10 @@ header {
 .control-panel::-webkit-scrollbar-thumb {
     background: #ccc;
     border-radius: 3px;
+}
+
+.control-panel::-webkit-scrollbar-thumb:hover {
+    background: #999;
 }
 
 .card {
@@ -599,4 +604,5 @@ footer a:hover {
         padding: 0.75rem;
     }
 }
+
 
