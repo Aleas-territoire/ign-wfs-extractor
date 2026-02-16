@@ -46,10 +46,15 @@
                     </div>
 
                     <div class="form-group">
-                        <label>
-                            <input type="checkbox" id="limit-features" checked>
-                            Limiter à 1000 entités
-                        </label>
+                        <label for="feature-limit">Nombre maximum d'entités :</label>
+                        <select id="feature-limit">
+                            <option value="1000">1 000 entités</option>
+                            <option value="5000">5 000 entités</option>
+                            <option value="10000">10 000 entités</option>
+                            <option value="25000">25 000 entités</option>
+                            <option value="50000" selected>50 000 entités</option>
+                            <option value="unlimited">Illimité (prudence !)</option>
+                        </select>
                     </div>
 
                     <button id="extract-btn" class="btn-primary">
@@ -109,14 +114,26 @@
 
                     <div class="tutorial-card">
                         <div class="step-number">3</div>
+                        <h3>Définir la limite</h3>
+                        <p>Choisissez le nombre maximum d'entités à extraire. Pour les grandes villes, commencez avec 5 000 puis augmentez si nécessaire.</p>
+                    </div>
+
+                    <div class="tutorial-card">
+                        <div class="step-number">4</div>
                         <h3>Extraire les données</h3>
                         <p>Cliquez sur "Extraire les données" pour interroger le service WFS de l'IGN et visualiser les résultats sur la carte.</p>
                     </div>
 
                     <div class="tutorial-card">
-                        <div class="step-number">4</div>
+                        <div class="step-number">5</div>
+                        <h3>Explorer la carte</h3>
+                        <p>Cliquez sur les entités affichées pour voir leurs propriétés détaillées dans une popup interactive.</p>
+                    </div>
+
+                    <div class="tutorial-card">
+                        <div class="step-number">6</div>
                         <h3>Exporter</h3>
-                        <p>Téléchargez les données extraites au format GeoJSON pour les utiliser dans votre SIG préféré.</p>
+                        <p>Téléchargez les données extraites au format GeoJSON pour les utiliser dans votre SIG préféré (QGIS, ArcGIS, etc.).</p>
                     </div>
                 </div>
 
@@ -128,6 +145,19 @@
                         <li><strong>Leaflet</strong> : Bibliothèque de cartographie interactive</li>
                         <li><strong>GeoJSON</strong> : Format d'échange de données géographiques</li>
                     </ul>
+                    
+                    <div style="margin-top: 1.5rem; padding: 1rem; background: #fff3cd; border-left: 4px solid #ffc107; border-radius: 4px;">
+                        <strong>⚠️ Conseil d'utilisation :</strong><br>
+                        Pour les grandes communes ou les couches très denses (comme les bâtiments à Paris), 
+                        commencez avec une limite de 5 000 entités. Les extractions importantes peuvent prendre du temps 
+                        et ralentir votre navigateur. L'option "Illimité" est à utiliser avec prudence.
+                    </div>
+
+                    <div style="margin-top: 1rem; padding: 1rem; background: #d1ecf1; border-left: 4px solid #0c5460; border-radius: 4px;">
+                        <strong>💡 Astuce :</strong><br>
+                        Si vous atteignez la limite d'entités, le système vous l'indiquera. Vous pourrez alors augmenter 
+                        cette limite ou affiner votre zone de recherche en sélectionnant une commune plus petite.
+                    </div>
                 </div>
             </div>
         </section>
@@ -135,7 +165,8 @@
 
     <footer>
         <p>Données © <a href="https://www.ign.fr" target="_blank">IGN</a> - BD TOPO® | 
-           Réalisé avec <a href="https://leafletjs.com" target="_blank">Leaflet</a></p>
+           Réalisé avec <a href="https://leafletjs.com" target="_blank">Leaflet</a> | 
+           <a href="https://github.com" target="_blank">Code source sur GitHub</a></p>
     </footer>
 
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
