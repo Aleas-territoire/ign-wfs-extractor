@@ -79,140 +79,148 @@
 
     <main>
         <div class="container">
-            <!-- Panneau de contrôle - Redesigné -->
+            <!-- Panneau de contrôle -->
             <aside class="control-panel">
-                <!-- Recherche de commune -->
-                <div class="card card-primary">
-                    <div class="card-header">
-                        <h2>📍 Commune</h2>
-                    </div>
-                    <div class="card-body">
-                        <div class="form-group">
-                            <input 
-                                type="text" 
-                                id="commune-search" 
-                                placeholder="Rechercher une commune..."
-                                autocomplete="off"
-                            >
-                            <div id="suggestions" class="suggestions"></div>
+                <div class="control-panel-scroll">
+                    <!-- Recherche de commune -->
+                    <div class="card card-primary">
+                        <div class="card-header">
+                            <h2>📍 Commune</h2>
                         </div>
-                        <div id="commune-info" class="commune-info">
-                            <small>Aucune commune sélectionnée</small>
+                        <div class="card-body">
+                            <div class="form-group">
+                                <input 
+                                    type="text" 
+                                    id="commune-search" 
+                                    placeholder="Rechercher une commune..."
+                                    autocomplete="off"
+                                >
+                                <div id="suggestions" class="suggestions"></div>
+                            </div>
+                            <div id="commune-info" class="commune-info">
+                                <small>Aucune commune sélectionnée</small>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Sélection de la couche -->
+                    <div class="card">
+                        <div class="card-header">
+                            <h2>🗂️ Couche de données</h2>
+                        </div>
+                        <div class="card-body">
+                            <div class="form-group">
+                                <select id="layer-select">
+                                    <optgroup label="🏗️ Bâti">
+                                        <option value="BDTOPO_V3:batiment">Bâtiments</option>
+                                        <option value="BDTOPO_V3:construction_lineaire">Constructions linéaires</option>
+                                        <option value="BDTOPO_V3:construction_ponctuelle">Constructions ponctuelles</option>
+                                    </optgroup>
+                                    
+                                    <optgroup label="🛣️ Transport">
+                                        <option value="BDTOPO_V3:troncon_de_route">Tronçons de route</option>
+                                        <option value="BDTOPO_V3:route_numerotee_ou_nommee">Routes numérotées</option>
+                                        <option value="BDTOPO_V3:troncon_de_voie_ferree">Voies ferrées</option>
+                                        <option value="BDTOPO_V3:aire_de_triage">Aires de triage</option>
+                                        <option value="BDTOPO_V3:equipement_de_transport">Équipements de transport</option>
+                                    </optgroup>
+                                    
+                                    <optgroup label="💧 Hydrographie">
+                                        <option value="BDTOPO_V3:troncon_hydrographique">Cours d'eau</option>
+                                        <option value="BDTOPO_V3:plan_d_eau">Plans d'eau</option>
+                                        <option value="BDTOPO_V3:reservoir">Réservoirs</option>
+                                        <option value="BDTOPO_V3:surface_hydrographique">Surfaces hydrographiques</option>
+                                        <option value="BDTOPO_V3:cours_d_eau">Entités cours d'eau</option>
+                                    </optgroup>
+                                    
+                                    <optgroup label="🌳 Végétation">
+                                        <option value="BDTOPO_V3:zone_de_vegetation">Zones de végétation</option>
+                                        <option value="BDTOPO_V3:haie">Haies</option>
+                                    </optgroup>
+                                    
+                                    <optgroup label="⚡ Réseaux">
+                                        <option value="BDTOPO_V3:ligne_electrique">Lignes électriques</option>
+                                        <option value="BDTOPO_V3:poste_de_transformation">Postes de transformation</option>
+                                        <option value="BDTOPO_V3:pylone">Pylônes</option>
+                                        <option value="BDTOPO_V3:conduite">Conduites</option>
+                                    </optgroup>
+                                    
+                                    <optgroup label="🏃 Sport">
+                                        <option value="BDTOPO_V3:terrain_de_sport">Terrains de sport</option>
+                                        <option value="BDTOPO_V3:piste_d_aerodrome">Pistes d'aérodrome</option>
+                                    </optgroup>
+                                    
+                                    <optgroup label="🏛️ Administratif">
+                                        <option value="BDTOPO_V3:commune">Limites communales</option>
+                                        <option value="BDTOPO_V3:arrondissement">Arrondissements</option>
+                                        <option value="BDTOPO_V3:epci">EPCI</option>
+                                    </optgroup>
+                                    
+                                    <optgroup label="⚰️ Autres">
+                                        <option value="BDTOPO_V3:cimetiere">Cimetières</option>
+                                        <option value="BDTOPO_V3:zone_d_activite_ou_d_interet">Zones d'activité</option>
+                                        <option value="BDTOPO_V3:point_du_reseau">Points du réseau</option>
+                                        <option value="BDTOPO_V3:lieu_dit_non_habite">Lieux-dits</option>
+                                    </optgroup>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Paramètres d'extraction -->
+                    <div class="card">
+                        <div class="card-header">
+                            <h2>⚙️ Paramètres</h2>
+                        </div>
+                        <div class="card-body">
+                            <div class="form-group">
+                                <label for="feature-limit">Limite d'entités</label>
+                                <select id="feature-limit">
+                                    <option value="1000">1 000</option>
+                                    <option value="5000">5 000</option>
+                                    <option value="10000" selected>10 000</option>
+                                    <option value="25000">25 000</option>
+                                    <option value="50000">50 000</option>
+                                    <option value="unlimited">Illimité ⚠️</option>
+                                </select>
+                            </div>
+
+                            <div class="form-group">
+                                <label class="checkbox-label">
+                                    <input type="checkbox" id="spatial-filter" checked>
+                                    <span>Filtrage spatial précis</span>
+                                </label>
+                                <small class="help-text">Conserve uniquement les entités dans les limites de la commune</small>
+                            </div>
+
+                            <button id="extract-btn" class="btn-primary">
+                                <span class="btn-icon">🔍</span>
+                                <span>Extraire les données</span>
+                            </button>
+
+                            <div id="status" class="status"></div>
+                        </div>
+                    </div>
+
+                    <!-- Résultats -->
+                    <div class="card card-results">
+                        <div class="card-header">
+                            <h2>📊 Résultats</h2>
+                        </div>
+                        <div class="card-body">
+                            <div id="results-info" class="results-info">
+                                <small style="color: #999;">Aucune extraction effectuée</small>
+                            </div>
                         </div>
                     </div>
                 </div>
-
-                <!-- Sélection de la couche -->
-                <div class="card">
-                    <div class="card-header">
-                        <h2>🗂️ Couche de données</h2>
-                    </div>
-                    <div class="card-body">
-                        <div class="form-group">
-                            <select id="layer-select">
-                                <optgroup label="🏗️ Bâti">
-                                    <option value="BDTOPO_V3:batiment">Bâtiments</option>
-                                    <option value="BDTOPO_V3:construction_lineaire">Constructions linéaires</option>
-                                    <option value="BDTOPO_V3:construction_ponctuelle">Constructions ponctuelles</option>
-                                </optgroup>
-                                
-                                <optgroup label="🛣️ Transport">
-                                    <option value="BDTOPO_V3:troncon_de_route">Tronçons de route</option>
-                                    <option value="BDTOPO_V3:route_numerotee_ou_nommee">Routes numérotées</option>
-                                    <option value="BDTOPO_V3:troncon_de_voie_ferree">Voies ferrées</option>
-                                    <option value="BDTOPO_V3:aire_de_triage">Aires de triage</option>
-                                    <option value="BDTOPO_V3:equipement_de_transport">Équipements de transport</option>
-                                </optgroup>
-                                
-                                <optgroup label="💧 Hydrographie">
-                                    <option value="BDTOPO_V3:troncon_hydrographique">Cours d'eau</option>
-                                    <option value="BDTOPO_V3:plan_d_eau">Plans d'eau</option>
-                                    <option value="BDTOPO_V3:reservoir">Réservoirs</option>
-                                    <option value="BDTOPO_V3:surface_hydrographique">Surfaces hydrographiques</option>
-                                    <option value="BDTOPO_V3:cours_d_eau">Entités cours d'eau</option>
-                                </optgroup>
-                                
-                                <optgroup label="🌳 Végétation">
-                                    <option value="BDTOPO_V3:zone_de_vegetation">Zones de végétation</option>
-                                    <option value="BDTOPO_V3:haie">Haies</option>
-                                </optgroup>
-                                
-                                <optgroup label="⚡ Réseaux">
-                                    <option value="BDTOPO_V3:ligne_electrique">Lignes électriques</option>
-                                    <option value="BDTOPO_V3:poste_de_transformation">Postes de transformation</option>
-                                    <option value="BDTOPO_V3:pylone">Pylônes</option>
-                                    <option value="BDTOPO_V3:conduite">Conduites</option>
-                                </optgroup>
-                                
-                                <optgroup label="🏃 Sport">
-                                    <option value="BDTOPO_V3:terrain_de_sport">Terrains de sport</option>
-                                    <option value="BDTOPO_V3:piste_d_aerodrome">Pistes d'aérodrome</option>
-                                </optgroup>
-                                
-                                <optgroup label="🏛️ Administratif">
-                                    <option value="BDTOPO_V3:commune">Limites communales</option>
-                                    <option value="BDTOPO_V3:arrondissement">Arrondissements</option>
-                                    <option value="BDTOPO_V3:epci">EPCI</option>
-                                </optgroup>
-                                
-                                <optgroup label="⚰️ Autres">
-                                    <option value="BDTOPO_V3:cimetiere">Cimetières</option>
-                                    <option value="BDTOPO_V3:zone_d_activite_ou_d_interet">Zones d'activité</option>
-                                    <option value="BDTOPO_V3:point_du_reseau">Points du réseau</option>
-                                    <option value="BDTOPO_V3:lieu_dit_non_habite">Lieux-dits</option>
-                                </optgroup>
-                            </select>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Paramètres d'extraction -->
-                <div class="card">
-                    <div class="card-header">
-                        <h2>⚙️ Paramètres</h2>
-                    </div>
-                    <div class="card-body">
-                        <div class="form-group">
-                            <label for="feature-limit">Limite d'entités</label>
-                            <select id="feature-limit">
-                                <option value="1000">1 000</option>
-                                <option value="5000">5 000</option>
-                                <option value="10000" selected>10 000</option>
-                                <option value="25000">25 000</option>
-                                <option value="50000">50 000</option>
-                                <option value="unlimited">Illimité ⚠️</option>
-                            </select>
-                        </div>
-
-                        <div class="form-group">
-                            <label class="checkbox-label">
-                                <input type="checkbox" id="spatial-filter" checked>
-                                <span>Filtrage spatial précis</span>
-                            </label>
-                            <small class="help-text">Conserve uniquement les entités dans les limites de la commune</small>
-                        </div>
-
-                        <button id="extract-btn" class="btn-primary">
-                            <span class="btn-icon">🔍</span>
-                            <span>Extraire les données</span>
-                        </button>
-
-                        <div id="status" class="status"></div>
-                    </div>
-                </div>
-
-                <!-- Résultats et export -->
-                <div class="card card-results" style="display: none;">
-                    <div class="card-header">
-                        <h2>📊 Résultats</h2>
-                    </div>
-                    <div class="card-body">
-                        <div id="results-info" class="results-info"></div>
-                        <button id="export-geojson" class="btn-secondary">
-                            <span class="btn-icon">📥</span>
-                            <span>Télécharger GeoJSON</span>
-                        </button>
-                    </div>
+                
+                <!-- Bouton export sticky en bas -->
+                <div class="export-sticky">
+                    <button id="export-geojson" class="btn-secondary" disabled>
+                        <span class="btn-icon">📥</span>
+                        <span>Télécharger GeoJSON</span>
+                    </button>
                 </div>
             </aside>
 
