@@ -9,321 +9,238 @@
 </head>
 <body>
     <header>
-        <h1>🗺️ Extraction WFS BD TOPO IGN</h1>
-        <p class="subtitle">Interrogez la base de données géographiques de l'IGN par commune</p>
+        <div class="header-content">
+            <h1>🗺️ Extracteur BD TOPO IGN</h1>
+            <p class="subtitle">Extraction de données géographiques par commune</p>
+        </div>
+        <button id="help-toggle" class="help-btn">
+            <span>❓</span> Aide
+        </button>
     </header>
+
+    <!-- Panneau d'aide escamotable -->
+    <div id="help-panel" class="help-panel">
+        <div class="help-content">
+            <button id="help-close" class="help-close">✕</button>
+            <h2>💡 Guide d'utilisation</h2>
+            
+            <div class="help-steps">
+                <div class="help-step">
+                    <span class="help-step-number">1</span>
+                    <div class="help-step-content">
+                        <h3>Rechercher une commune</h3>
+                        <p>Utilisez la barre de recherche pour trouver votre commune. L'autocomplétion vous aidera.</p>
+                    </div>
+                </div>
+                
+                <div class="help-step">
+                    <span class="help-step-number">2</span>
+                    <div class="help-step-content">
+                        <h3>Sélectionner une couche</h3>
+                        <p>Choisissez le type de données : bâtiments, routes, hydrographie, végétation, etc.</p>
+                    </div>
+                </div>
+                
+                <div class="help-step">
+                    <span class="help-step-number">3</span>
+                    <div class="help-step-content">
+                        <h3>Configurer l'extraction</h3>
+                        <p>Définissez le nombre maximum d'entités et activez le filtrage spatial si nécessaire.</p>
+                    </div>
+                </div>
+                
+                <div class="help-step">
+                    <span class="help-step-number">4</span>
+                    <div class="help-step-content">
+                        <h3>Lancer l'extraction</h3>
+                        <p>Cliquez sur "Extraire" et visualisez les résultats sur la carte.</p>
+                    </div>
+                </div>
+                
+                <div class="help-step">
+                    <span class="help-step-number">5</span>
+                    <div class="help-step-content">
+                        <h3>Exporter les données</h3>
+                        <p>Téléchargez vos données au format GeoJSON pour les utiliser dans votre SIG.</p>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="help-info">
+                <h3>ℹ️ Informations techniques</h3>
+                <ul>
+                    <li><strong>Filtrage spatial précis</strong> : Utilise Turf.js pour ne conserver que les entités dans la commune</li>
+                    <li><strong>Subdivision spatiale</strong> : Contourne les limites serveur pour extraire toutes les données</li>
+                    <li><strong>Sources</strong> : BD TOPO v3 de l'IGN via service WFS</li>
+                </ul>
+            </div>
+        </div>
+    </div>
 
     <main>
         <div class="container">
-            <!-- Panneau de contrôle -->
+            <!-- Panneau de contrôle - Redesigné -->
             <aside class="control-panel">
-                <div class="card">
-                    <h2>📍 Sélection de la commune</h2>
-                    
-                    <div class="form-group">
-                        <label for="commune-search">Rechercher une commune :</label>
-                        <input 
-                            type="text" 
-                            id="commune-search" 
-                            placeholder="Ex: Paris, Lyon, Niort..."
-                            autocomplete="off"
-                        >
-                        <div id="suggestions" class="suggestions"></div>
+                <!-- Recherche de commune -->
+                <div class="card card-primary">
+                    <div class="card-header">
+                        <h2>📍 Commune</h2>
                     </div>
-
-                    <div class="form-group">
-                        <label for="layer-select">Couche BD TOPO :</label>
-                        <select id="layer-select">
-                            <optgroup label="🏗️ Bâti">
-                                <option value="BDTOPO_V3:batiment">Bâtiments</option>
-                                <option value="BDTOPO_V3:construction_lineaire">Constructions linéaires (murs, clôtures)</option>
-                                <option value="BDTOPO_V3:construction_ponctuelle">Constructions ponctuelles</option>
-                            </optgroup>
-                            
-                            <optgroup label="🛣️ Transport">
-                                <option value="BDTOPO_V3:troncon_de_route">Tronçons de route</option>
-                                <option value="BDTOPO_V3:route_numerotee_ou_nommee">Routes numérotées</option>
-                                <option value="BDTOPO_V3:troncon_de_voie_ferree">Voies ferrées</option>
-                                <option value="BDTOPO_V3:aire_de_triage">Aires de triage</option>
-                                <option value="BDTOPO_V3:equipement_de_transport">Équipements de transport</option>
-                            </optgroup>
-                            
-                            <optgroup label="💧 Hydrographie">
-                                <option value="BDTOPO_V3:troncon_hydrographique">Cours d'eau</option>
-                                <option value="BDTOPO_V3:plan_d_eau">Plans d'eau</option>
-                                <option value="BDTOPO_V3:reservoir">Réservoirs</option>
-                                <option value="BDTOPO_V3:surface_hydrographique">Surfaces hydrographiques</option>
-                                <option value="BDTOPO_V3:cours_d_eau">Entités cours d'eau</option>
-                            </optgroup>
-                            
-                            <optgroup label="🌳 Végétation et zones naturelles">
-                                <option value="BDTOPO_V3:zone_de_vegetation">Zones de végétation</option>
-                                <option value="BDTOPO_V3:haie">Haies</option>
-                            </optgroup>
-                            
-                            <optgroup label="⚡ Réseaux et énergie">
-                                <option value="BDTOPO_V3:ligne_electrique">Lignes électriques</option>
-                                <option value="BDTOPO_V3:poste_de_transformation">Postes de transformation</option>
-                                <option value="BDTOPO_V3:pylone">Pylônes</option>
-                                <option value="BDTOPO_V3:conduite">Conduites</option>
-                            </optgroup>
-                            
-                            <optgroup label="🏃 Sport et loisirs">
-                                <option value="BDTOPO_V3:terrain_de_sport">Terrains de sport</option>
-                                <option value="BDTOPO_V3:piste_d_aerodrome">Pistes d'aérodrome</option>
-                            </optgroup>
-                            
-                            <optgroup label="⚰️ Cimetières">
-                                <option value="BDTOPO_V3:cimetiere">Cimetières</option>
-                            </optgroup>
-                            
-                            <optgroup label="🏛️ Administratif">
-                                <option value="BDTOPO_V3:commune">Limites communales</option>
-                                <option value="BDTOPO_V3:arrondissement">Arrondissements</option>
-                                <option value="BDTOPO_V3:epci">EPCI</option>
-                            </optgroup>
-                            
-                            <optgroup label="🏭 Activités économiques">
-                                <option value="BDTOPO_V3:zone_d_activite_ou_d_interet">Zones d'activité</option>
-                            </optgroup>
-                            
-                            <optgroup label="🏞️ Divers">
-                                <option value="BDTOPO_V3:point_du_reseau">Points du réseau</option>
-                                <option value="BDTOPO_V3:lieu_dit_non_habite">Lieux-dits non habités</option>
-                                <option value="BDTOPO_V3:toponymie_lieux_nommes">Toponymie</option>
-                            </optgroup>
-                        </select>
-                    </div>
-
-                    <div class="form-group">
-                        <label for="feature-limit">Nombre maximum d'entités :</label>
-                        <select id="feature-limit">
-                            <option value="1000">1 000 entités</option>
-                            <option value="5000">5 000 entités</option>
-                            <option value="10000">10 000 entités</option>
-                            <option value="25000">25 000 entités</option>
-                            <option value="50000" selected>50 000 entités</option>
-                            <option value="unlimited">Illimité (prudence !)</option>
-                        </select>
-                    </div>
-
-                    <div class="form-group">
-                        <label>
-                            <input type="checkbox" id="spatial-filter" checked>
-                            Filtrage spatial précis (utilise les limites communales)
-                        </label>
-                    </div>
-
-                    <button id="extract-btn" class="btn-primary">
-                        🔍 Extraire les données
-                    </button>
-
-                    <div id="status" class="status"></div>
-                </div>
-
-                <div class="card info-panel">
-                    <h3>ℹ️ Informations</h3>
-                    <div id="info-content">
-                        <p>Sélectionnez une commune et une couche pour commencer l'extraction.</p>
+                    <div class="card-body">
+                        <div class="form-group">
+                            <input 
+                                type="text" 
+                                id="commune-search" 
+                                placeholder="Rechercher une commune..."
+                                autocomplete="off"
+                            >
+                            <div id="suggestions" class="suggestions"></div>
+                        </div>
+                        <div id="commune-info" class="commune-info">
+                            <small>Aucune commune sélectionnée</small>
+                        </div>
                     </div>
                 </div>
 
+                <!-- Sélection de la couche -->
                 <div class="card">
-                    <h3>💾 Export des données</h3>
-                    <button id="export-geojson" class="btn-secondary" disabled>
-                        📥 Télécharger GeoJSON
-                    </button>
+                    <div class="card-header">
+                        <h2>🗂️ Couche de données</h2>
+                    </div>
+                    <div class="card-body">
+                        <div class="form-group">
+                            <select id="layer-select">
+                                <optgroup label="🏗️ Bâti">
+                                    <option value="BDTOPO_V3:batiment">Bâtiments</option>
+                                    <option value="BDTOPO_V3:construction_lineaire">Constructions linéaires</option>
+                                    <option value="BDTOPO_V3:construction_ponctuelle">Constructions ponctuelles</option>
+                                </optgroup>
+                                
+                                <optgroup label="🛣️ Transport">
+                                    <option value="BDTOPO_V3:troncon_de_route">Tronçons de route</option>
+                                    <option value="BDTOPO_V3:route_numerotee_ou_nommee">Routes numérotées</option>
+                                    <option value="BDTOPO_V3:troncon_de_voie_ferree">Voies ferrées</option>
+                                    <option value="BDTOPO_V3:aire_de_triage">Aires de triage</option>
+                                    <option value="BDTOPO_V3:equipement_de_transport">Équipements de transport</option>
+                                </optgroup>
+                                
+                                <optgroup label="💧 Hydrographie">
+                                    <option value="BDTOPO_V3:troncon_hydrographique">Cours d'eau</option>
+                                    <option value="BDTOPO_V3:plan_d_eau">Plans d'eau</option>
+                                    <option value="BDTOPO_V3:reservoir">Réservoirs</option>
+                                    <option value="BDTOPO_V3:surface_hydrographique">Surfaces hydrographiques</option>
+                                    <option value="BDTOPO_V3:cours_d_eau">Entités cours d'eau</option>
+                                </optgroup>
+                                
+                                <optgroup label="🌳 Végétation">
+                                    <option value="BDTOPO_V3:zone_de_vegetation">Zones de végétation</option>
+                                    <option value="BDTOPO_V3:haie">Haies</option>
+                                </optgroup>
+                                
+                                <optgroup label="⚡ Réseaux">
+                                    <option value="BDTOPO_V3:ligne_electrique">Lignes électriques</option>
+                                    <option value="BDTOPO_V3:poste_de_transformation">Postes de transformation</option>
+                                    <option value="BDTOPO_V3:pylone">Pylônes</option>
+                                    <option value="BDTOPO_V3:conduite">Conduites</option>
+                                </optgroup>
+                                
+                                <optgroup label="🏃 Sport">
+                                    <option value="BDTOPO_V3:terrain_de_sport">Terrains de sport</option>
+                                    <option value="BDTOPO_V3:piste_d_aerodrome">Pistes d'aérodrome</option>
+                                </optgroup>
+                                
+                                <optgroup label="🏛️ Administratif">
+                                    <option value="BDTOPO_V3:commune">Limites communales</option>
+                                    <option value="BDTOPO_V3:arrondissement">Arrondissements</option>
+                                    <option value="BDTOPO_V3:epci">EPCI</option>
+                                </optgroup>
+                                
+                                <optgroup label="⚰️ Autres">
+                                    <option value="BDTOPO_V3:cimetiere">Cimetières</option>
+                                    <option value="BDTOPO_V3:zone_d_activite_ou_d_interet">Zones d'activité</option>
+                                    <option value="BDTOPO_V3:point_du_reseau">Points du réseau</option>
+                                    <option value="BDTOPO_V3:lieu_dit_non_habite">Lieux-dits</option>
+                                </optgroup>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Paramètres d'extraction -->
+                <div class="card">
+                    <div class="card-header">
+                        <h2>⚙️ Paramètres</h2>
+                    </div>
+                    <div class="card-body">
+                        <div class="form-group">
+                            <label for="feature-limit">Limite d'entités</label>
+                            <select id="feature-limit">
+                                <option value="1000">1 000</option>
+                                <option value="5000">5 000</option>
+                                <option value="10000" selected>10 000</option>
+                                <option value="25000">25 000</option>
+                                <option value="50000">50 000</option>
+                                <option value="unlimited">Illimité ⚠️</option>
+                            </select>
+                        </div>
+
+                        <div class="form-group">
+                            <label class="checkbox-label">
+                                <input type="checkbox" id="spatial-filter" checked>
+                                <span>Filtrage spatial précis</span>
+                            </label>
+                            <small class="help-text">Conserve uniquement les entités dans les limites de la commune</small>
+                        </div>
+
+                        <button id="extract-btn" class="btn-primary">
+                            <span class="btn-icon">🔍</span>
+                            <span>Extraire les données</span>
+                        </button>
+
+                        <div id="status" class="status"></div>
+                    </div>
+                </div>
+
+                <!-- Résultats et export -->
+                <div class="card card-results" style="display: none;">
+                    <div class="card-header">
+                        <h2>📊 Résultats</h2>
+                    </div>
+                    <div class="card-body">
+                        <div id="results-info" class="results-info"></div>
+                        <button id="export-geojson" class="btn-secondary">
+                            <span class="btn-icon">📥</span>
+                            <span>Télécharger GeoJSON</span>
+                        </button>
+                    </div>
                 </div>
             </aside>
 
             <!-- Carte -->
-            <section class="map-container">
-                <div id="map"></div>
-                <div class="map-legend">
-                    <h4>Légende</h4>
-                    <div id="legend-content">
-                        <div class="legend-item">
-                            <span class="legend-color" style="background: #3388ff;"></span>
-                            <span>Commune sélectionnée</span>
+            <section class="map-section">
+                <div class="map-container">
+                    <div id="map"></div>
+                    <div class="map-legend">
+                        <h4>Légende</h4>
+                        <div id="legend-content">
+                            <div class="legend-item">
+                                <span class="legend-color" style="background: #3388ff;"></span>
+                                <span>Commune</span>
+                            </div>
                         </div>
                     </div>
                 </div>
             </section>
         </div>
-
-        <!-- Section didactique -->
-        <section class="tutorial">
-            <div class="container-full">
-                <h2>📚 Comment utiliser cet outil ?</h2>
-                
-                <div class="tutorial-grid">
-                    <div class="tutorial-card">
-                        <div class="step-number">1</div>
-                        <h3>Rechercher une commune</h3>
-                        <p>Tapez le nom d'une commune française dans le champ de recherche. Des suggestions apparaîtront automatiquement.</p>
-                    </div>
-
-                    <div class="tutorial-card">
-                        <div class="step-number">2</div>
-                        <h3>Choisir une thématique</h3>
-                        <p>Sélectionnez une couche parmi les thématiques organisées : bâti, transport, hydrographie, végétation, réseaux, sport, etc.</p>
-                    </div>
-
-                    <div class="tutorial-card">
-                        <div class="step-number">3</div>
-                        <h3>Définir la limite</h3>
-                        <p>Choisissez le nombre maximum d'entités à extraire. Pour les grandes villes, commencez avec 5 000 puis augmentez si nécessaire.</p>
-                    </div>
-
-                    <div class="tutorial-card">
-                        <div class="step-number">4</div>
-                        <h3>Filtrage spatial</h3>
-                        <p>Le filtrage spatial précis garantit que seules les entités réellement dans la commune sont extraites grâce à la subdivision spatiale.</p>
-                    </div>
-
-                    <div class="tutorial-card">
-                        <div class="step-number">5</div>
-                        <h3>Extraire les données</h3>
-                        <p>Cliquez sur "Extraire les données". L'outil subdivise automatiquement la zone pour contourner les limites serveur.</p>
-                    </div>
-
-                    <div class="tutorial-card">
-                        <div class="step-number">6</div>
-                        <h3>Explorer et exporter</h3>
-                        <p>Cliquez sur les entités pour voir leurs propriétés. Téléchargez les données au format GeoJSON pour votre SIG.</p>
-                    </div>
-                </div>
-
-                <div class="tech-info">
-                    <h3>🔧 Technologies utilisées</h3>
-                    <ul>
-                        <li><strong>API Découpage Administratif</strong> : Recherche de communes françaises</li>
-                        <li><strong>WFS BD TOPO v3 (IGN)</strong> : Service web de données géographiques</li>
-                        <li><strong>Leaflet</strong> : Bibliothèque de cartographie interactive</li>
-                        <li><strong>Turf.js</strong> : Analyse spatiale et filtrage géométrique précis</li>
-                        <li><strong>GeoJSON</strong> : Format d'échange de données géographiques</li>
-                    </ul>
-                    
-                    <div style="margin-top: 1.5rem; padding: 1rem; background: #d4edda; border-left: 4px solid #28a745; border-radius: 4px;">
-                        <strong>✨ Extraction optimisée !</strong><br>
-                        Le système utilise une subdivision spatiale automatique pour extraire toutes les données, 
-                        même pour les grandes communes avec des dizaines de milliers d'entités.
-                    </div>
-
-                    <div style="margin-top: 1rem; padding: 1rem; background: #fff3cd; border-left: 4px solid #ffc107; border-radius: 4px;">
-                        <strong>⚠️ Conseil d'utilisation :</strong><br>
-                        Les extractions importantes peuvent prendre quelques minutes. 
-                        Le statut vous indique la progression zone par zone.
-                    </div>
-
-                    <div style="margin-top: 1rem; padding: 1rem; background: #d1ecf1; border-left: 4px solid #0c5460; border-radius: 4px;">
-                        <strong>💡 Organisation thématique :</strong><br>
-                        Les couches sont organisées par thématiques : Bâti, Transport, Hydrographie, Végétation, 
-                        Réseaux, Sport, Cimetières, Administratif, Activités économiques. Choisissez celle qui correspond à votre besoin.
-                    </div>
-                </div>
-
-                <div style="margin-top: 2rem; padding: 2rem; background: white; border-radius: 8px; border: 2px solid #e9ecef;">
-                    <h3 style="color: #008B8B; margin-bottom: 1rem;">📋 Thématiques disponibles</h3>
-                    
-                    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 1.5rem;">
-                        <div class="theme-card">
-                            <h4>🏗️ Bâti</h4>
-                            <ul>
-                                <li>Bâtiments</li>
-                                <li>Constructions linéaires</li>
-                                <li>Constructions ponctuelles</li>
-                            </ul>
-                        </div>
-                        
-                        <div class="theme-card">
-                            <h4>🛣️ Transport</h4>
-                            <ul>
-                                <li>Tronçons de route</li>
-                                <li>Routes numérotées</li>
-                                <li>Voies ferrées</li>
-                                <li>Aires de triage</li>
-                                <li>Équipements de transport</li>
-                            </ul>
-                        </div>
-                        
-                        <div class="theme-card">
-                            <h4>💧 Hydrographie</h4>
-                            <ul>
-                                <li>Cours d'eau</li>
-                                <li>Plans d'eau</li>
-                                <li>Réservoirs</li>
-                                <li>Surfaces hydrographiques</li>
-                            </ul>
-                        </div>
-                        
-                        <div class="theme-card">
-                            <h4>🌳 Végétation</h4>
-                            <ul>
-                                <li>Zones de végétation</li>
-                                <li>Haies</li>
-                            </ul>
-                        </div>
-                        
-                        <div class="theme-card">
-                            <h4>⚡ Réseaux</h4>
-                            <ul>
-                                <li>Lignes électriques</li>
-                                <li>Postes de transformation</li>
-                                <li>Pylônes</li>
-                                <li>Conduites</li>
-                            </ul>
-                        </div>
-                        
-                        <div class="theme-card">
-                            <h4>🏃 Sport & Loisirs</h4>
-                            <ul>
-                                <li>Terrains de sport</li>
-                                <li>Pistes d'aérodrome</li>
-                            </ul>
-                        </div>
-                        
-                        <div class="theme-card">
-                            <h4>⚰️ Cimetières</h4>
-                            <ul>
-                                <li>Cimetières</li>
-                            </ul>
-                        </div>
-                        
-                        <div class="theme-card">
-                            <h4>🏛️ Administratif</h4>
-                            <ul>
-                                <li>Limites communales</li>
-                                <li>Arrondissements</li>
-                                <li>EPCI</li>
-                            </ul>
-                        </div>
-                        
-                        <div class="theme-card">
-                            <h4>🏭 Activités</h4>
-                            <ul>
-                                <li>Zones d'activité</li>
-                            </ul>
-                        </div>
-                        
-                        <div class="theme-card">
-                            <h4>🏞️ Divers</h4>
-                            <ul>
-                                <li>Points du réseau</li>
-                                <li>Lieux-dits</li>
-                                <li>Toponymie</li>
-                            </ul>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </section>
     </main>
 
     <footer>
-        <p>Données © <a href="https://www.ign.fr" target="_blank">IGN</a> - BD TOPO® | 
-           Réalisé avec <a href="https://leafletjs.com" target="_blank">Leaflet</a> et <a href="https://turfjs.org" target="_blank">Turf.js</a> | 
-           <a href="https://github.com" target="_blank">Code source sur GitHub</a></p>
+        <div class="footer-content">
+            <p>
+                <strong>Données</strong> : © <a href="https://www.ign.fr" target="_blank">IGN</a> - BD TOPO® |
+                <strong>Technologies</strong> : <a href="https://leafletjs.com" target="_blank">Leaflet</a>, <a href="https://turfjs.org" target="_blank">Turf.js</a>
+            </p>
+        </div>
     </footer>
 
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
