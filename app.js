@@ -587,18 +587,47 @@ function displayExtractedData(data) {
 
 function getStyleForLayer(layerType) {
     const styles = {
+        // Bâti
         batiment: {
             style: { color: '#e74c3c', weight: 1, fillOpacity: 0.5, fillColor: '#e74c3c' },
             pointStyle: { radius: 5, fillColor: '#e74c3c', color: '#c0392b', weight: 1, fillOpacity: 0.7 }
         },
-        commune: {
-            style: { color: '#34495e', weight: 2, fillOpacity: 0.1, fillColor: '#34495e' },
-            pointStyle: { radius: 5, fillColor: '#34495e', color: '#2c3e50', weight: 1, fillOpacity: 0.7 }
+        construction_lineaire: {
+            style: { color: '#95a5a6', weight: 2, fillOpacity: 0 },
+            pointStyle: { radius: 4, fillColor: '#95a5a6', color: '#7f8c8d', weight: 1, fillOpacity: 0.7 }
         },
+        construction_ponctuelle: {
+            style: { color: '#c0392b', weight: 2, fillOpacity: 0.6, fillColor: '#c0392b' },
+            pointStyle: { radius: 6, fillColor: '#c0392b', color: '#a93226', weight: 1, fillOpacity: 0.8 }
+        },
+        construction_surfacique: {
+            style: { color: '#d35400', weight: 1, fillOpacity: 0.4, fillColor: '#d35400' },
+            pointStyle: { radius: 5, fillColor: '#d35400', color: '#ba4a00', weight: 1, fillOpacity: 0.7 }
+        },
+        
+        // Transport
         troncon_de_route: {
             style: { color: '#e67e22', weight: 2, fillOpacity: 0 },
             pointStyle: { radius: 4, fillColor: '#e67e22', color: '#d35400', weight: 1, fillOpacity: 0.7 }
         },
+        route_numerotee_ou_nommee: {
+            style: { color: '#d35400', weight: 3, fillOpacity: 0 },
+            pointStyle: { radius: 5, fillColor: '#d35400', color: '#ba4a00', weight: 1, fillOpacity: 0.7 }
+        },
+        troncon_de_voie_ferree: {
+            style: { color: '#34495e', weight: 3, fillOpacity: 0, dashArray: '10, 5' },
+            pointStyle: { radius: 4, fillColor: '#34495e', color: '#2c3e50', weight: 1, fillOpacity: 0.7 }
+        },
+        aire_de_triage: {
+            style: { color: '#7f8c8d', weight: 1, fillOpacity: 0.3, fillColor: '#7f8c8d' },
+            pointStyle: { radius: 5, fillColor: '#7f8c8d', color: '#5d6d7e', weight: 1, fillOpacity: 0.7 }
+        },
+        equipement_de_transport: {
+            style: { color: '#f39c12', weight: 2, fillOpacity: 0.5, fillColor: '#f39c12' },
+            pointStyle: { radius: 6, fillColor: '#f39c12', color: '#d68910', weight: 1, fillOpacity: 0.8 }
+        },
+        
+        // Hydrographie
         troncon_hydrographique: {
             style: { color: '#3498db', weight: 2, fillOpacity: 0 },
             pointStyle: { radius: 4, fillColor: '#3498db', color: '#2980b9', weight: 1, fillOpacity: 0.7 }
@@ -607,22 +636,97 @@ function getStyleForLayer(layerType) {
             style: { color: '#3498db', weight: 1, fillOpacity: 0.4, fillColor: '#3498db' },
             pointStyle: { radius: 5, fillColor: '#3498db', color: '#2980b9', weight: 1, fillOpacity: 0.7 }
         },
-        zone_de_vegetation: {
-            style: { color: '#27ae60', weight: 1, fillOpacity: 0.4, fillColor: '#27ae60' },
-            pointStyle: { radius: 5, fillColor: '#27ae60', color: '#229954', weight: 1, fillOpacity: 0.7 }
-        },
-        ligne_electrique: {
-            style: { color: '#8e44ad', weight: 2, fillOpacity: 0, dashArray: '5, 5' },
-            pointStyle: { radius: 4, fillColor: '#8e44ad', color: '#7d3c98', weight: 1, fillOpacity: 0.7 }
-        },
-        construction_lineaire: {
-            style: { color: '#95a5a6', weight: 2, fillOpacity: 0 },
-            pointStyle: { radius: 4, fillColor: '#95a5a6', color: '#7f8c8d', weight: 1, fillOpacity: 0.7 }
-        },
         reservoir: {
             style: { color: '#16a085', weight: 1, fillOpacity: 0.5, fillColor: '#16a085' },
             pointStyle: { radius: 5, fillColor: '#16a085', color: '#138d75', weight: 1, fillOpacity: 0.7 }
         },
+        surface_hydrographique: {
+            style: { color: '#5dade2', weight: 1, fillOpacity: 0.4, fillColor: '#5dade2' },
+            pointStyle: { radius: 5, fillColor: '#5dade2', color: '#3498db', weight: 1, fillOpacity: 0.7 }
+        },
+        cours_d_eau: {
+            style: { color: '#2874a6', weight: 2, fillOpacity: 0.3, fillColor: '#2874a6' },
+            pointStyle: { radius: 4, fillColor: '#2874a6', color: '#1f618d', weight: 1, fillOpacity: 0.7 }
+        },
+        
+        // Végétation
+        zone_de_vegetation: {
+            style: { color: '#27ae60', weight: 1, fillOpacity: 0.4, fillColor: '#27ae60' },
+            pointStyle: { radius: 5, fillColor: '#27ae60', color: '#229954', weight: 1, fillOpacity: 0.7 }
+        },
+        haie: {
+            style: { color: '#196f3d', weight: 2, fillOpacity: 0 },
+            pointStyle: { radius: 3, fillColor: '#196f3d', color: '#145a32', weight: 1, fillOpacity: 0.7 }
+        },
+        
+        // Réseaux et énergie
+        ligne_electrique: {
+            style: { color: '#8e44ad', weight: 2, fillOpacity: 0, dashArray: '5, 5' },
+            pointStyle: { radius: 4, fillColor: '#8e44ad', color: '#7d3c98', weight: 1, fillOpacity: 0.7 }
+        },
+        poste_de_transformation: {
+            style: { color: '#6c3483', weight: 1, fillOpacity: 0.6, fillColor: '#6c3483' },
+            pointStyle: { radius: 6, fillColor: '#6c3483', color: '#5b2c6f', weight: 1, fillOpacity: 0.8 }
+        },
+        pylone: {
+            style: { color: '#884ea0', weight: 2, fillOpacity: 0.5, fillColor: '#884ea0' },
+            pointStyle: { radius: 7, fillColor: '#884ea0', color: '#76448a', weight: 1, fillOpacity: 0.8 }
+        },
+        conduite: {
+            style: { color: '#7d3c98', weight: 2, fillOpacity: 0, dashArray: '3, 3' },
+            pointStyle: { radius: 3, fillColor: '#7d3c98', color: '#6c3483', weight: 1, fillOpacity: 0.7 }
+        },
+        
+        // Enseignement et sport
+        terrain_de_sport: {
+            style: { color: '#f4d03f', weight: 1, fillOpacity: 0.4, fillColor: '#f4d03f' },
+            pointStyle: { radius: 5, fillColor: '#f4d03f', color: '#f1c40f', weight: 1, fillOpacity: 0.7 }
+        },
+        piste_d_aerodrome: {
+            style: { color: '#839192', weight: 2, fillOpacity: 0.3, fillColor: '#839192' },
+            pointStyle: { radius: 5, fillColor: '#839192', color: '#717d7e', weight: 1, fillOpacity: 0.7 }
+        },
+        
+        // Cimetières
+        cimetiere: {
+            style: { color: '#5d6d7e', weight: 1, fillOpacity: 0.3, fillColor: '#5d6d7e' },
+            pointStyle: { radius: 5, fillColor: '#5d6d7e', color: '#515a5a', weight: 1, fillOpacity: 0.7 }
+        },
+        
+        // Administratif
+        commune: {
+            style: { color: '#34495e', weight: 2, fillOpacity: 0.1, fillColor: '#34495e' },
+            pointStyle: { radius: 5, fillColor: '#34495e', color: '#2c3e50', weight: 1, fillOpacity: 0.7 }
+        },
+        arrondissement: {
+            style: { color: '#2c3e50', weight: 2, fillOpacity: 0.05, fillColor: '#2c3e50' },
+            pointStyle: { radius: 5, fillColor: '#2c3e50', color: '#1c2833', weight: 1, fillOpacity: 0.7 }
+        },
+        epci: {
+            style: { color: '#283747', weight: 3, fillOpacity: 0.08, fillColor: '#283747' },
+            pointStyle: { radius: 5, fillColor: '#283747', color: '#1c2833', weight: 1, fillOpacity: 0.7 }
+        },
+        
+        // Activités économiques
+        zone_d_activite_ou_d_interet: {
+            style: { color: '#d68910', weight: 1, fillOpacity: 0.3, fillColor: '#d68910' },
+            pointStyle: { radius: 5, fillColor: '#d68910', color: '#b9770e', weight: 1, fillOpacity: 0.7 }
+        },
+        
+        // Divers
+        point_du_reseau: {
+            style: { color: '#85929e', weight: 2, fillOpacity: 0.5, fillColor: '#85929e' },
+            pointStyle: { radius: 5, fillColor: '#85929e', color: '#717d7e', weight: 1, fillOpacity: 0.8 }
+        },
+        lieu_dit_non_habite: {
+            style: { color: '#aab7b8', weight: 1, fillOpacity: 0.2, fillColor: '#aab7b8' },
+            pointStyle: { radius: 4, fillColor: '#aab7b8', color: '#99a3a4', weight: 1, fillOpacity: 0.6 }
+        },
+        toponymie_lieux_nommes: {
+            style: { color: '#566573', weight: 1, fillOpacity: 0.1, fillColor: '#566573' },
+            pointStyle: { radius: 4, fillColor: '#566573', color: '#515a5a', weight: 1, fillOpacity: 0.6 }
+        },
+        
         default: {
             style: { color: '#9b59b6', weight: 2, fillOpacity: 0.3, fillColor: '#9b59b6' },
             pointStyle: { radius: 5, fillColor: '#9b59b6', color: '#8e44ad', weight: 1, fillOpacity: 0.7 }
