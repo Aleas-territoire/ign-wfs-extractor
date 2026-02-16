@@ -25,13 +25,36 @@ function initMap() {
     }
 }
 
-// Recherche de communes avec autocomplétion
+// Initialisation au chargement du DOM
 document.addEventListener('DOMContentLoaded', () => {
     console.log('DOM chargé');
     
     // Initialiser la carte
     initMap();
-    updateInfo('<p>👋 Bienvenue ! Commencez par rechercher une commune ci-dessus.</p>');
+    
+    // Gestionnaire du panneau d'aide
+    const helpToggle = document.getElementById('help-toggle');
+    const helpPanel = document.getElementById('help-panel');
+    const helpClose = document.getElementById('help-close');
+    
+    if (helpToggle && helpPanel && helpClose) {
+        helpToggle.addEventListener('click', () => {
+            helpPanel.classList.add('active');
+        });
+        
+        helpClose.addEventListener('click', () => {
+            helpPanel.classList.remove('active');
+        });
+        
+        // Fermer l'aide en cliquant en dehors
+        document.addEventListener('click', (e) => {
+            if (helpPanel.classList.contains('active') && 
+                !helpPanel.contains(e.target) && 
+                !helpToggle.contains(e.target)) {
+                helpPanel.classList.remove('active');
+            }
+        });
+    }
     
     // Configurer la recherche de communes
     const communeSearch = document.getElementById('commune-search');
@@ -143,11 +166,20 @@ function selectCommune(commune) {
     selectedCommune = commune;
     
     const communeSearch = document.getElementById('commune-search');
-    communeSearch.value = `${commune.nom} (${commune.code})`;
+    communeSearch.value = commune.nom;
     
     const suggestionsDiv = document.getElementById('suggestions');
     suggestionsDiv.classList.remove('active');
     suggestionsDiv.innerHTML = '';
+    
+    // Mettre à jour l'info commune
+    const communeInfo = document.getElementById('commune-info');
+    if (communeInfo) {
+        communeInfo.innerHTML = `
+            <strong>${commune.nom}</strong><br>
+            <small>Code INSEE : ${commune.code}${commune.codesPostaux ? ' | CP : ' + commune.codesPostaux.join(', ') : ''}</small>
+        `;
+    }
     
     // Afficher la commune sur la carte
     if (communeLayer) {
@@ -174,8 +206,6 @@ function selectCommune(commune) {
     } catch (error) {
         console.error('Erreur affichage commune:', error);
     }
-    
-    updateInfo(`Commune sélectionnée : <strong>${commune.nom}</strong><br>Code INSEE : ${commune.code}`);
 }
 
 async function extractWFSData() {
@@ -226,12 +256,13 @@ async function extractWFSData() {
         
         if (allFeatures.length === 0) {
             showStatus('Aucune donnée trouvée pour cette commune et cette couche', 'error');
-            updateInfo(`
-                <strong>Aucun résultat</strong><br>
-                Commune : ${selectedCommune.nom}<br>
-                Couche : ${layer.split(':')[1]}<br>
-                <small>Essayez une autre couche.</small>
-            `);
+            
+            // Masquer la carte des résultats
+            const resultsCard = document.querySelector('.card-results');
+            if (resultsCard) {
+                resultsCard.style.display = 'none';
+            }
+            
             return;
         }
         
@@ -273,23 +304,31 @@ async function extractWFSData() {
         
         document.getElementById('export-geojson').disabled = false;
         
-        let infoMessage = `
-            <strong>Extraction réussie !</strong><br>
-            Commune : ${selectedCommune.nom}<br>
-            Couche : ${layer.split(':')[1]}<br>
-            Entités récupérées : ${uniqueFeatures.length.toLocaleString('fr-FR')}<br>
-            Entités dans la commune : ${count.toLocaleString('fr-FR')}
-        `;
-        
-        if (useSpatialFilter && removedCount > 0) {
-            infoMessage += `<br><span style="color: #f39c12;">Entités filtrées (hors commune) : ${removedCount.toLocaleString('fr-FR')}</span>`;
+        // Afficher la carte des résultats
+        const resultsCard = document.querySelector('.card-results');
+        if (resultsCard) {
+            resultsCard.style.display = 'block';
         }
         
-        updateInfo(infoMessage);
+        const resultsInfo = document.getElementById('results-info');
+        if (resultsInfo) {
+            resultsInfo.innerHTML = `
+                <div><strong>Commune :</strong> ${selectedCommune.nom}</div>
+                <div><strong>Couche :</strong> ${layer.split(':')[1].replace(/_/g, ' ')}</div>
+                <div><strong>Entités extraites :</strong> ${count.toLocaleString('fr-FR')}</div>
+                ${useSpatialFilter && removedCount > 0 ? `<div style="color: #f39c12;"><strong>Entités filtrées :</strong> ${removedCount.toLocaleString('fr-FR')}</div>` : ''}
+            `;
+        }
         
     } catch (error) {
         console.error('Erreur extraction:', error);
         showStatus(`Erreur : ${error.message}`, 'error');
+        
+        // Masquer la carte des résultats en cas d'erreur
+        const resultsCard = document.querySelector('.card-results');
+        if (resultsCard) {
+            resultsCard.style.display = 'none';
+        }
     }
 }
 
@@ -563,12 +602,12 @@ function displayExtractedData(data) {
         },
         onEachFeature: (feature, layer) => {
             const props = feature.properties;
-            let content = `<div style="max-width: 300px;"><h4 style="color: #008B8B;">${layerType}</h4>`;
+            let content = `<div style="max-width: 300px;"><h4 style="color: #008B8B; margin-bottom: 0.5rem;">${layerType.replace(/_/g, ' ')}</h4>`;
             
             let count = 0;
             for (const [key, value] of Object.entries(props)) {
                 if (value && count < 10) {
-                    content += `<div><strong>${key}:</strong> ${value}</div>`;
+                    content += `<div style="margin-bottom: 0.25rem;"><strong>${key}:</strong> ${value}</div>`;
                     count++;
                 }
             }
@@ -780,11 +819,3 @@ function showStatus(message, type) {
         }
     }
 }
-
-function updateInfo(html) {
-    const infoContent = document.getElementById('info-content');
-    if (infoContent) {
-        infoContent.innerHTML = html;
-    }
-}
-
