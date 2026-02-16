@@ -25,7 +25,7 @@
                         <input 
                             type="text" 
                             id="commune-search" 
-                            placeholder="Ex: Paris, Lyon..."
+                            placeholder="Ex: Paris, Lyon, Niort..."
                             autocomplete="off"
                         >
                         <div id="suggestions" class="suggestions"></div>
@@ -35,13 +35,14 @@
                         <label for="layer-select">Couche BD TOPO :</label>
                         <select id="layer-select">
                             <option value="BDTOPO_V3:batiment">Bâtiments</option>
-                            <option value="BDTOPO_V3:route">Routes</option>
+                            <option value="BDTOPO_V3:commune">Limites communales</option>
                             <option value="BDTOPO_V3:troncon_de_route">Tronçons de route</option>
-                            <option value="BDTOPO_V3:cours_d_eau">Cours d'eau</option>
-                            <option value="BDTOPO_V3:surface_hydrographique">Surfaces hydrographiques</option>
+                            <option value="BDTOPO_V3:troncon_hydrographique">Cours d'eau</option>
+                            <option value="BDTOPO_V3:plan_d_eau">Plans d'eau</option>
                             <option value="BDTOPO_V3:zone_de_vegetation">Zones de végétation</option>
                             <option value="BDTOPO_V3:ligne_electrique">Lignes électriques</option>
-                            <option value="BDTOPO_V3:commune">Limites communales</option>
+                            <option value="BDTOPO_V3:construction_lineaire">Constructions linéaires</option>
+                            <option value="BDTOPO_V3:reservoir">Réservoirs</option>
                         </select>
                     </div>
 
@@ -109,7 +110,7 @@
                     <div class="tutorial-card">
                         <div class="step-number">2</div>
                         <h3>Choisir une couche</h3>
-                        <p>Sélectionnez le type de données géographiques que vous souhaitez extraire (bâtiments, routes, cours d'eau, etc.).</p>
+                        <p>Sélectionnez le type de données géographiques que vous souhaitez extraire : bâtiments, routes, cours d'eau, etc.</p>
                     </div>
 
                     <div class="tutorial-card">
@@ -157,6 +158,54 @@
                         <strong>💡 Astuce :</strong><br>
                         Si vous atteignez la limite d'entités, le système vous l'indiquera. Vous pourrez alors augmenter 
                         cette limite ou affiner votre zone de recherche en sélectionnant une commune plus petite.
+                    </div>
+
+                    <div style="margin-top: 1rem; padding: 1rem; background: #d4edda; border-left: 4px solid #28a745; border-radius: 4px;">
+                        <strong>🔍 Debug :</strong><br>
+                        En cas d'erreur, ouvrez la console de votre navigateur (touche F12) pour voir les détails 
+                        de la requête WFS et identifier le problème.
+                    </div>
+                </div>
+
+                <div style="margin-top: 2rem; padding: 2rem; background: white; border-radius: 8px; border: 2px solid #e9ecef;">
+                    <h3 style="color: #0066cc; margin-bottom: 1rem;">📋 Couches disponibles</h3>
+                    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1rem;">
+                        <div>
+                            <strong>🏢 Bâtiments</strong><br>
+                            <small>Tous les bâtiments construits</small>
+                        </div>
+                        <div>
+                            <strong>🏛️ Limites communales</strong><br>
+                            <small>Contours administratifs</small>
+                        </div>
+                        <div>
+                            <strong>🛣️ Tronçons de route</strong><br>
+                            <small>Réseau routier détaillé</small>
+                        </div>
+                        <div>
+                            <strong>💧 Cours d'eau</strong><br>
+                            <small>Réseau hydrographique linéaire</small>
+                        </div>
+                        <div>
+                            <strong>🌊 Plans d'eau</strong><br>
+                            <small>Lacs, étangs, mares</small>
+                        </div>
+                        <div>
+                            <strong>🌳 Végétation</strong><br>
+                            <small>Forêts, parcs, espaces verts</small>
+                        </div>
+                        <div>
+                            <strong>⚡ Lignes électriques</strong><br>
+                            <small>Réseau électrique aérien</small>
+                        </div>
+                        <div>
+                            <strong>🏗️ Constructions linéaires</strong><br>
+                            <small>Murs, clôtures, digues</small>
+                        </div>
+                        <div>
+                            <strong>🏭 Réservoirs</strong><br>
+                            <small>Châteaux d'eau, cuves</small>
+                        </div>
                     </div>
                 </div>
             </div>
