@@ -34,15 +34,72 @@
                     <div class="form-group">
                         <label for="layer-select">Couche BD TOPO :</label>
                         <select id="layer-select">
-                            <option value="BDTOPO_V3:batiment">Bâtiments</option>
-                            <option value="BDTOPO_V3:commune">Limites communales</option>
-                            <option value="BDTOPO_V3:troncon_de_route">Tronçons de route</option>
-                            <option value="BDTOPO_V3:troncon_hydrographique">Cours d'eau</option>
-                            <option value="BDTOPO_V3:plan_d_eau">Plans d'eau</option>
-                            <option value="BDTOPO_V3:zone_de_vegetation">Zones de végétation</option>
-                            <option value="BDTOPO_V3:ligne_electrique">Lignes électriques</option>
-                            <option value="BDTOPO_V3:construction_lineaire">Constructions linéaires</option>
-                            <option value="BDTOPO_V3:reservoir">Réservoirs</option>
+                            <optgroup label="🏗️ Bâti">
+                                <option value="BDTOPO_V3:batiment">Bâtiments</option>
+                                <option value="BDTOPO_V3:construction_lineaire">Constructions linéaires (murs, clôtures)</option>
+                                <option value="BDTOPO_V3:construction_ponctuelle">Constructions ponctuelles</option>
+                                <option value="BDTOPO_V3:construction_surfacique">Constructions surfaciques</option>
+                            </optgroup>
+                            
+                            <optgroup label="🛣️ Transport">
+                                <option value="BDTOPO_V3:troncon_de_route">Tronçons de route</option>
+                                <option value="BDTOPO_V3:route_numerotee_ou_nommee">Routes numérotées</option>
+                                <option value="BDTOPO_V3:troncon_de_voie_ferree">Voies ferrées</option>
+                                <option value="BDTOPO_V3:aire_de_triage">Aires de triage</option>
+                                <option value="BDTOPO_V3:equipement_de_transport">Équipements de transport</option>
+                            </optgroup>
+                            
+                            <optgroup label="💧 Hydrographie">
+                                <option value="BDTOPO_V3:troncon_hydrographique">Cours d'eau</option>
+                                <option value="BDTOPO_V3:plan_d_eau">Plans d'eau</option>
+                                <option value="BDTOPO_V3:reservoir">Réservoirs</option>
+                                <option value="BDTOPO_V3:surface_hydrographique">Surfaces hydrographiques</option>
+                                <option value="BDTOPO_V3:cours_d_eau">Entités cours d'eau</option>
+                            </optgroup>
+                            
+                            <optgroup label="🌳 Végétation et zones naturelles">
+                                <option value="BDTOPO_V3:zone_de_vegetation">Zones de végétation</option>
+                                <option value="BDTOPO_V3:haie">Haies</option>
+                            </optgroup>
+                            
+                            <optgroup label="⚡ Réseaux et énergie">
+                                <option value="BDTOPO_V3:ligne_electrique">Lignes électriques</option>
+                                <option value="BDTOPO_V3:poste_de_transformation">Postes de transformation</option>
+                                <option value="BDTOPO_V3:pylone">Pylônes</option>
+                                <option value="BDTOPO_V3:conduite">Conduites</option>
+                            </optgroup>
+                            
+                            <optgroup label="🏥 Santé">
+                                <option value="BDTOPO_V3:construction_surfacique" data-filter="sante">Établissements de santé</option>
+                            </optgroup>
+                            
+                            <optgroup label="🎓 Enseignement et culture">
+                                <option value="BDTOPO_V3:construction_surfacique" data-filter="enseignement">Établissements d'enseignement</option>
+                                <option value="BDTOPO_V3:terrain_de_sport">Terrains de sport</option>
+                                <option value="BDTOPO_V3:piste_d_aerodrome">Pistes d'aérodrome</option>
+                            </optgroup>
+                            
+                            <optgroup label="⚰️ Cimetières et culte">
+                                <option value="BDTOPO_V3:cimetiere">Cimetières</option>
+                                <option value="BDTOPO_V3:construction_surfacique" data-filter="culte">Lieux de culte</option>
+                            </optgroup>
+                            
+                            <optgroup label="🏛️ Administratif">
+                                <option value="BDTOPO_V3:commune">Limites communales</option>
+                                <option value="BDTOPO_V3:arrondissement">Arrondissements</option>
+                                <option value="BDTOPO_V3:epci">EPCI</option>
+                            </optgroup>
+                            
+                            <optgroup label="🏭 Activités économiques">
+                                <option value="BDTOPO_V3:zone_d_activite_ou_d_interet">Zones d'activité</option>
+                                <option value="BDTOPO_V3:construction_surfacique" data-filter="industrie">Sites industriels</option>
+                            </optgroup>
+                            
+                            <optgroup label="🏞️ Divers">
+                                <option value="BDTOPO_V3:point_du_reseau">Points du réseau</option>
+                                <option value="BDTOPO_V3:lieu_dit_non_habite">Lieux-dits non habités</option>
+                                <option value="BDTOPO_V3:toponymie_lieux_nommes">Toponymie</option>
+                            </optgroup>
                         </select>
                     </div>
 
@@ -116,8 +173,8 @@
 
                     <div class="tutorial-card">
                         <div class="step-number">2</div>
-                        <h3>Choisir une couche</h3>
-                        <p>Sélectionnez le type de données géographiques que vous souhaitez extraire : bâtiments, routes, cours d'eau, etc.</p>
+                        <h3>Choisir une thématique</h3>
+                        <p>Sélectionnez une couche parmi les thématiques organisées : bâti, transport, hydrographie, végétation, réseaux, santé, etc.</p>
                     </div>
 
                     <div class="tutorial-card">
@@ -129,13 +186,13 @@
                     <div class="tutorial-card">
                         <div class="step-number">4</div>
                         <h3>Filtrage spatial</h3>
-                        <p>Le filtrage spatial précis garantit que seules les entités réellement dans la commune sont extraites (pas seulement dans l'emprise).</p>
+                        <p>Le filtrage spatial précis garantit que seules les entités réellement dans la commune sont extraites grâce à la subdivision spatiale.</p>
                     </div>
 
                     <div class="tutorial-card">
                         <div class="step-number">5</div>
                         <h3>Extraire les données</h3>
-                        <p>Cliquez sur "Extraire les données" pour interroger le service WFS de l'IGN et visualiser les résultats sur la carte.</p>
+                        <p>Cliquez sur "Extraire les données". L'outil subdivise automatiquement la zone pour contourner les limites serveur.</p>
                     </div>
 
                     <div class="tutorial-card">
@@ -156,62 +213,118 @@
                     </ul>
                     
                     <div style="margin-top: 1.5rem; padding: 1rem; background: #d4edda; border-left: 4px solid #28a745; border-radius: 4px;">
-                        <strong>✨ Filtrage spatial amélioré !</strong><br>
-                        Le filtrage spatial précis utilise les limites communales exactes pour ne sélectionner que les entités réellement dans la commune. 
-                        Cela élimine les données en périphérie qui seraient dans l'emprise rectangulaire mais hors de la commune.
+                        <strong>✨ Extraction optimisée !</strong><br>
+                        Le système utilise une subdivision spatiale automatique pour extraire toutes les données, 
+                        même pour les grandes communes avec des dizaines de milliers d'entités.
                     </div>
 
                     <div style="margin-top: 1rem; padding: 1rem; background: #fff3cd; border-left: 4px solid #ffc107; border-radius: 4px;">
                         <strong>⚠️ Conseil d'utilisation :</strong><br>
-                        Le filtrage spatial peut prendre quelques secondes supplémentaires pour les grandes extractions. 
-                        Vous pouvez le désactiver pour gagner du temps si vous n'avez pas besoin d'une précision maximale.
+                        Les extractions importantes peuvent prendre quelques minutes. 
+                        Le statut vous indique la progression zone par zone.
                     </div>
 
                     <div style="margin-top: 1rem; padding: 1rem; background: #d1ecf1; border-left: 4px solid #0c5460; border-radius: 4px;">
-                        <strong>💡 Astuce :</strong><br>
-                        Si vous atteignez la limite d'entités, le système vous l'indiquera. Vous pourrez alors augmenter 
-                        cette limite ou affiner votre zone de recherche.
+                        <strong>💡 Organisation thématique :</strong><br>
+                        Les couches sont organisées par thématiques : Bâti, Transport, Hydrographie, Végétation, 
+                        Réseaux, Santé, Enseignement, Administratif, etc. Choisissez celle qui correspond à votre besoin.
                     </div>
                 </div>
 
                 <div style="margin-top: 2rem; padding: 2rem; background: white; border-radius: 8px; border: 2px solid #e9ecef;">
-                    <h3 style="color: #008B8B; margin-bottom: 1rem;">📋 Couches disponibles</h3>
-                    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1rem;">
-                        <div>
-                            <strong>🏢 Bâtiments</strong><br>
-                            <small>Tous les bâtiments construits</small>
+                    <h3 style="color: #008B8B; margin-bottom: 1rem;">📋 Thématiques disponibles</h3>
+                    
+                    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 1.5rem;">
+                        <div class="theme-card">
+                            <h4>🏗️ Bâti</h4>
+                            <ul>
+                                <li>Bâtiments</li>
+                                <li>Constructions linéaires</li>
+                                <li>Constructions ponctuelles</li>
+                                <li>Constructions surfaciques</li>
+                            </ul>
                         </div>
-                        <div>
-                            <strong>🏛️ Limites communales</strong><br>
-                            <small>Contours administratifs</small>
+                        
+                        <div class="theme-card">
+                            <h4>🛣️ Transport</h4>
+                            <ul>
+                                <li>Tronçons de route</li>
+                                <li>Routes numérotées</li>
+                                <li>Voies ferrées</li>
+                                <li>Aires de triage</li>
+                                <li>Équipements de transport</li>
+                            </ul>
                         </div>
-                        <div>
-                            <strong>🛣️ Tronçons de route</strong><br>
-                            <small>Réseau routier détaillé</small>
+                        
+                        <div class="theme-card">
+                            <h4>💧 Hydrographie</h4>
+                            <ul>
+                                <li>Cours d'eau</li>
+                                <li>Plans d'eau</li>
+                                <li>Réservoirs</li>
+                                <li>Surfaces hydrographiques</li>
+                            </ul>
                         </div>
-                        <div>
-                            <strong>💧 Cours d'eau</strong><br>
-                            <small>Réseau hydrographique linéaire</small>
+                        
+                        <div class="theme-card">
+                            <h4>🌳 Végétation</h4>
+                            <ul>
+                                <li>Zones de végétation</li>
+                                <li>Haies</li>
+                            </ul>
                         </div>
-                        <div>
-                            <strong>🌊 Plans d'eau</strong><br>
-                            <small>Lacs, étangs, mares</small>
+                        
+                        <div class="theme-card">
+                            <h4>⚡ Réseaux</h4>
+                            <ul>
+                                <li>Lignes électriques</li>
+                                <li>Postes de transformation</li>
+                                <li>Pylônes</li>
+                                <li>Conduites</li>
+                            </ul>
                         </div>
-                        <div>
-                            <strong>🌳 Végétation</strong><br>
-                            <small>Forêts, parcs, espaces verts</small>
+                        
+                        <div class="theme-card">
+                            <h4>🏥 Santé</h4>
+                            <ul>
+                                <li>Établissements de santé</li>
+                                <li>Hôpitaux</li>
+                                <li>Cliniques</li>
+                            </ul>
                         </div>
-                        <div>
-                            <strong>⚡ Lignes électriques</strong><br>
-                            <small>Réseau électrique aérien</small>
+                        
+                        <div class="theme-card">
+                            <h4>🎓 Enseignement</h4>
+                            <ul>
+                                <li>Établissements scolaires</li>
+                                <li>Terrains de sport</li>
+                                <li>Pistes d'aérodrome</li>
+                            </ul>
                         </div>
-                        <div>
-                            <strong>🏗️ Constructions linéaires</strong><br>
-                            <small>Murs, clôtures, digues</small>
+                        
+                        <div class="theme-card">
+                            <h4>⚰️ Cimetières & Culte</h4>
+                            <ul>
+                                <li>Cimetières</li>
+                                <li>Lieux de culte</li>
+                            </ul>
                         </div>
-                        <div>
-                            <strong>🏭 Réservoirs</strong><br>
-                            <small>Châteaux d'eau, cuves</small>
+                        
+                        <div class="theme-card">
+                            <h4>🏛️ Administratif</h4>
+                            <ul>
+                                <li>Limites communales</li>
+                                <li>Arrondissements</li>
+                                <li>EPCI</li>
+                            </ul>
+                        </div>
+                        
+                        <div class="theme-card">
+                            <h4>🏭 Activités</h4>
+                            <ul>
+                                <li>Zones d'activité</li>
+                                <li>Sites industriels</li>
+                            </ul>
                         </div>
                     </div>
                 </div>
