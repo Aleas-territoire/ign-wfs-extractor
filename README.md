@@ -1,12 +1,12 @@
-\# 🗺️ Extracteur WFS BD TOPO IGN
+## 🗺️ Extracteur de données géographiques à la commune depuis le WFS de la BD TOPO IGN
 
 
 
-Application web responsive et didactique pour extraire des données géographiques du service WFS de la BD TOPO de l'IGN, filtrées par commune française.
+Application web permettant d'extraire des données géographiques du service WFS de la BD TOPO de l'IGN, filtrées par commune française.
 
 
 
-\## 🌟 Fonctionnalités
+## 🌟 Fonctionnalités
 
 
 
@@ -26,11 +26,11 @@ Application web responsive et didactique pour extraire des données géographiqu
 
 
 
-\## 🚀 Démarrage rapide
+## 🚀 Démarrage rapide
 
 
 
-\### Utilisation en ligne
+### Utilisation en ligne
 
 
 
@@ -259,4 +259,5 @@ Pour toute question ou suggestion, ouvrez une issue sur GitHub.
 
 
 Fait avec ❤️ pour la communauté SIG
+
 
