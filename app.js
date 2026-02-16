@@ -365,4 +365,91 @@ function getStyleForLayer(layerType) {
             style: { color: '#e67e22', weight: 2, fillOpacity: 0 },
             pointStyle: { radius: 4, fillColor: '#e67e22', color: '#d35400', weight: 1, fillOpacity: 0.7 }
         },
-        troncon_hydro
+        troncon_hydrographique: {
+            style: { color: '#3498db', weight: 2, fillOpacity: 0.3, fillColor: '#3498db' },
+            pointStyle: { radius: 4, fillColor: '#3498db', color: '#2980b9', weight: 1, fillOpacity: 0.7 }
+        },
+        plan_d_eau: {
+            style: { color: '#3498db', weight: 1, fillOpacity: 0.4, fillColor: '#3498db' },
+            pointStyle: { radius: 5, fillColor: '#3498db', color: '#2980b9', weight: 1, fillOpacity: 0.7 }
+        },
+        zone_de_vegetation: {
+            style: { color: '#27ae60', weight: 1, fillOpacity: 0.4, fillColor: '#27ae60' },
+            pointStyle: { radius: 5, fillColor: '#27ae60', color: '#229954', weight: 1, fillOpacity: 0.7 }
+        },
+        ligne_electrique: {
+            style: { color: '#8e44ad', weight: 2, fillOpacity: 0, dashArray: '5, 5' },
+            pointStyle: { radius: 4, fillColor: '#8e44ad', color: '#7d3c98', weight: 1, fillOpacity: 0.7 }
+        },
+        commune: {
+            style: { color: '#34495e', weight: 2, fillOpacity: 0.1, fillColor: '#34495e' },
+            pointStyle: { radius: 5, fillColor: '#34495e', color: '#2c3e50', weight: 1, fillOpacity: 0.7 }
+        },
+        default: {
+            style: { color: '#9b59b6', weight: 2, fillOpacity: 0.3, fillColor: '#9b59b6' },
+            pointStyle: { radius: 5, fillColor: '#9b59b6', color: '#8e44ad', weight: 1, fillOpacity: 0.7 }
+        }
+    };
+    
+    return styles[layerType] || styles.default;
+}
+
+function updateLegend(layerType, style) {
+    const legendContent = document.getElementById('legend-content');
+    const color = style.style.color || style.pointStyle.fillColor;
+    
+    legendContent.innerHTML = `
+        <div class="legend-item">
+            <span class="legend-color" style="background: #3388ff;"></span>
+            <span>Commune</span>
+        </div>
+        <div class="legend-item">
+            <span class="legend-color" style="background: ${color};"></span>
+            <span>${layerType.replace(/_/g, ' ')}</span>
+        </div>
+    `;
+}
+
+// Export GeoJSON
+document.getElementById('export-geojson').addEventListener('click', () => {
+    if (!extractedData) return;
+    
+    const dataStr = JSON.stringify(extractedData, null, 2);
+    const blob = new Blob([dataStr], { type: 'application/json' });
+    const url = URL.createObjectURL(blob);
+    
+    const layerName = document.getElementById('layer-select').value.split(':')[1];
+    const fileName = `${selectedCommune.nom.replace(/[^a-z0-9]/gi, '_')}_${layerName}.geojson`;
+    
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = fileName;
+    a.click();
+    
+    URL.revokeObjectURL(url);
+    
+    showStatus('✅ Fichier GeoJSON téléchargé !', 'success');
+});
+
+// Fonctions utilitaires
+function showStatus(message, type) {
+    const status = document.getElementById('status');
+    status.textContent = message;
+    status.className = `status active ${type}`;
+    
+    if (type === 'success') {
+        setTimeout(() => {
+            status.classList.remove('active');
+        }, 5000);
+    }
+}
+
+function updateInfo(html) {
+    document.getElementById('info-content').innerHTML = html;
+}
+
+// Initialisation
+document.addEventListener('DOMContentLoaded', () => {
+    initMap();
+    updateInfo('<p>👋 Bienvenue ! Commencez par rechercher une commune ci-dessus.</p>');
+});
