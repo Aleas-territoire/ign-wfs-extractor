@@ -53,7 +53,6 @@ document.addEventListener('DOMContentLoaded', () => {
     
     communeSearch.addEventListener('input', (e) => {
         const query = e.target.value.trim();
-        console.log('Recherche:', query);
         
         if (query.length < 2) {
             suggestionsDiv.classList.remove('active');
@@ -91,8 +90,6 @@ async function searchCommunes(query) {
     const suggestionsDiv = document.getElementById('suggestions');
     
     try {
-        console.log('Recherche de:', query);
-        
         const response = await fetch(
             `${COMMUNE_API_URL}?nom=${encodeURIComponent(query)}&fields=nom,code,codesPostaux,centre,contour&format=json&geometry=contour&limit=10`
         );
@@ -138,7 +135,6 @@ function displaySuggestions(communes) {
     });
     
     suggestionsDiv.classList.add('active');
-    console.log('Suggestions affichées');
 }
 
 function selectCommune(commune) {
@@ -221,38 +217,64 @@ async function extractWFSData() {
         
         console.log('BBOX:', bounds);
         
-        // Construction de la requête WFS
+        // Construction de la requête WFS avec startIndex pour pagination
         const bboxString = `${bounds.minLon},${bounds.minLat},${bounds.maxLon},${bounds.maxLat},EPSG:4326`;
         
-        const params = new URLSearchParams({
-            service: 'WFS',
-            version: '2.0.0',
-            request: 'GetFeature',
-            typeName: layer,
-            outputFormat: 'application/json',
-            srsName: 'EPSG:4326',
-            bbox: bboxString
-        });
+        let allFeatures = [];
+        let startIndex = 0;
+        const pageSize = 1000; // Taille des pages pour la pagination
+        const maxLimit = featureLimit === 'unlimited' ? 100000 : parseInt(featureLimit);
         
-        if (featureLimit !== 'unlimited') {
-            params.append('count', featureLimit);
+        let hasMore = true;
+        
+        while (hasMore && allFeatures.length < maxLimit) {
+            const params = new URLSearchParams({
+                service: 'WFS',
+                version: '2.0.0',
+                request: 'GetFeature',
+                typeName: layer,
+                outputFormat: 'application/json',
+                srsName: 'EPSG:4326',
+                bbox: bboxString,
+                startIndex: startIndex.toString(),
+                count: Math.min(pageSize, maxLimit - allFeatures.length).toString()
+            });
+            
+            const url = `${WFS_URL}?${params.toString()}`;
+            console.log(`Requête WFS (page ${Math.floor(startIndex/pageSize) + 1}):`, url);
+            
+            const response = await fetch(url);
+            
+            if (!response.ok) {
+                const errorText = await response.text();
+                console.error('Erreur serveur:', errorText);
+                throw new Error(`Erreur HTTP ${response.status}`);
+            }
+            
+            const data = await response.json();
+            const featuresCount = data.features ? data.features.length : 0;
+            
+            console.log(`Page ${Math.floor(startIndex/pageSize) + 1}: ${featuresCount} features reçues`);
+            
+            if (featuresCount === 0) {
+                hasMore = false;
+            } else {
+                allFeatures = allFeatures.concat(data.features);
+                startIndex += featuresCount;
+                
+                // Si on a reçu moins que pageSize, c'est qu'il n'y a plus de données
+                if (featuresCount < pageSize) {
+                    hasMore = false;
+                }
+                
+                // Mise à jour du statut
+                showStatus(`Extraction en cours... ${allFeatures.length.toLocaleString('fr-FR')} entité(s)`, 'loading');
+            }
         }
         
-        const url = `${WFS_URL}?${params.toString()}`;
-        console.log('URL WFS:', url);
+        console.log(`Total récupéré: ${allFeatures.length} features`);
         
-        const response = await fetch(url);
-        
-        if (!response.ok) {
-            const errorText = await response.text();
-            console.error('Erreur serveur:', errorText);
-            throw new Error(`Erreur HTTP ${response.status}`);
-        }
-        
-        const data = await response.json();
-        console.log('Données reçues:', data.features ? data.features.length : 0, 'features');
-        
-        if (!data.features || data.features.length === 0) {
+        if (allFeatures.length === 0) {
             showStatus('Aucune donnée trouvée pour cette commune et cette couche', 'error');
             updateInfo(`
                 <strong>Aucun résultat</strong><br>
@@ -263,15 +285,20 @@ async function extractWFSData() {
             return;
         }
         
+        const allData = {
+            type: 'FeatureCollection',
+            features: allFeatures
+        };
+        
         // Filtrage spatial si activé
-        let filteredData = data;
+        let filteredData = allData;
         let removedCount = 0;
         
         if (useSpatialFilter && selectedCommune.contour) {
             showStatus('Filtrage spatial en cours...', 'loading');
             console.log('Application du filtrage spatial avec Turf.js');
             
-            const result = filterByCommuneBoundary(data, selectedCommune.contour);
+            const result = filterByCommuneBoundary(allData, selectedCommune.contour);
             filteredData = result.filteredData;
             removedCount = result.removedCount;
             
@@ -285,7 +312,7 @@ async function extractWFSData() {
         let statusMessage = `✅ ${count.toLocaleString('fr-FR')} entité(s) extraite(s)`;
         
         if (useSpatialFilter && removedCount > 0) {
-            statusMessage += ` (${removedCount} entité(s) hors commune filtrée(s))`;
+            statusMessage += ` (${removedCount} filtrée(s))`;
         }
         
         showStatus(statusMessage, 'success');
@@ -296,11 +323,12 @@ async function extractWFSData() {
             <strong>Extraction réussie !</strong><br>
             Commune : ${selectedCommune.nom}<br>
             Couche : ${layer.split(':')[1]}<br>
-            Entités extraites : ${count.toLocaleString('fr-FR')}
+            Entités dans la bbox : ${allFeatures.length.toLocaleString('fr-FR')}<br>
+            Entités dans la commune : ${count.toLocaleString('fr-FR')}
         `;
         
         if (useSpatialFilter && removedCount > 0) {
-            infoMessage += `<br>Entités filtrées : ${removedCount.toLocaleString('fr-FR')}`;
+            infoMessage += `<br><span style="color: #f39c12;">Entités filtrées (hors commune) : ${removedCount.toLocaleString('fr-FR')}</span>`;
         }
         
         updateInfo(infoMessage);
@@ -312,31 +340,58 @@ async function extractWFSData() {
 }
 
 function filterByCommuneBoundary(data, communeBoundary) {
-    const communePolygon = turf.polygon(communeBoundary.coordinates);
+    // Convertir le contour de la commune en polygon Turf
+    let communePolygon;
+    try {
+        // Gérer les MultiPolygon et Polygon
+        if (communeBoundary.type === 'MultiPolygon') {
+            communePolygon = turf.multiPolygon(communeBoundary.coordinates);
+        } else {
+            communePolygon = turf.polygon(communeBoundary.coordinates);
+        }
+    } catch (error) {
+        console.error('Erreur création polygone commune:', error);
+        return { filteredData: data, removedCount: 0 };
+    }
+    
     const filteredFeatures = [];
     let removedCount = 0;
     
-    data.features.forEach(feature => {
+    data.features.forEach((feature, index) => {
         try {
             let isInside = false;
             
+            if (!feature.geometry) {
+                console.warn('Feature sans géométrie ignorée:', index);
+                return;
+            }
+            
             // Gérer différents types de géométries
             if (feature.geometry.type === 'Point') {
-                isInside = turf.booleanPointInPolygon(feature.geometry, communePolygon);
-            } else if (feature.geometry.type === 'LineString') {
-                // Pour les lignes, vérifier si au moins une partie intersecte
-                isInside = turf.booleanIntersects(feature.geometry, communePolygon);
-            } else if (feature.geometry.type === 'Polygon' || feature.geometry.type === 'MultiPolygon') {
-                // Pour les polygones, vérifier l'intersection
-                isInside = turf.booleanIntersects(feature.geometry, communePolygon);
-            } else if (feature.geometry.type === 'MultiLineString') {
-                isInside = turf.booleanIntersects(feature.geometry, communePolygon);
+                const point = turf.point(feature.geometry.coordinates);
+                isInside = turf.booleanPointInPolygon(point, communePolygon);
             } else if (feature.geometry.type === 'MultiPoint') {
                 // Pour MultiPoint, vérifier si au moins un point est dans le polygone
-                const points = turf.multiPoint(feature.geometry.coordinates);
-                isInside = feature.geometry.coordinates.some(coord => 
-                    turf.booleanPointInPolygon(turf.point(coord), communePolygon)
-                );
+                isInside = feature.geometry.coordinates.some(coord => {
+                    const point = turf.point(coord);
+                    return turf.booleanPointInPolygon(point, communePolygon);
+                });
+            } else if (feature.geometry.type === 'LineString') {
+                const line = turf.lineString(feature.geometry.coordinates);
+                isInside = turf.booleanIntersects(line, communePolygon);
+            } else if (feature.geometry.type === 'MultiLineString') {
+                const multiLine = turf.multiLineString(feature.geometry.coordinates);
+                isInside = turf.booleanIntersects(multiLine, communePolygon);
+            } else if (feature.geometry.type === 'Polygon') {
+                const polygon = turf.polygon(feature.geometry.coordinates);
+                isInside = turf.booleanIntersects(polygon, communePolygon);
+            } else if (feature.geometry.type === 'MultiPolygon') {
+                const multiPolygon = turf.multiPolygon(feature.geometry.coordinates);
+                isInside = turf.booleanIntersects(multiPolygon, communePolygon);
+            } else {
+                console.warn('Type de géométrie non supporté:', feature.geometry.type);
+                // En cas de type non supporté, on conserve l'entité
+                isInside = true;
             }
             
             if (isInside) {
@@ -345,11 +400,13 @@ function filterByCommuneBoundary(data, communeBoundary) {
                 removedCount++;
             }
         } catch (error) {
-            console.warn('Erreur lors du filtrage spatial d\'une entité:', error);
-            // En cas d'erreur, on conserve l'entité
+            console.warn('Erreur lors du filtrage spatial d\'une entité (index ' + index + '):', error);
+            // En cas d'erreur, on conserve l'entité par sécurité
             filteredFeatures.push(feature);
         }
     });
+    
+    console.log(`Filtrage: ${filteredFeatures.length} conservées, ${removedCount} supprimées`);
     
     return {
         filteredData: {
