@@ -600,10 +600,6 @@ function getStyleForLayer(layerType) {
             style: { color: '#c0392b', weight: 2, fillOpacity: 0.6, fillColor: '#c0392b' },
             pointStyle: { radius: 6, fillColor: '#c0392b', color: '#a93226', weight: 1, fillOpacity: 0.8 }
         },
-        construction_surfacique: {
-            style: { color: '#d35400', weight: 1, fillOpacity: 0.4, fillColor: '#d35400' },
-            pointStyle: { radius: 5, fillColor: '#d35400', color: '#ba4a00', weight: 1, fillOpacity: 0.7 }
-        },
         
         // Transport
         troncon_de_route: {
@@ -677,7 +673,7 @@ function getStyleForLayer(layerType) {
             pointStyle: { radius: 3, fillColor: '#7d3c98', color: '#6c3483', weight: 1, fillOpacity: 0.7 }
         },
         
-        // Enseignement et sport
+        // Sport et loisirs
         terrain_de_sport: {
             style: { color: '#f4d03f', weight: 1, fillOpacity: 0.4, fillColor: '#f4d03f' },
             pointStyle: { radius: 5, fillColor: '#f4d03f', color: '#f1c40f', weight: 1, fillOpacity: 0.7 }
@@ -791,3 +787,4 @@ function updateInfo(html) {
         infoContent.innerHTML = html;
     }
 }
+
