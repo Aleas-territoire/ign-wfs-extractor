@@ -58,6 +58,13 @@
                         </select>
                     </div>
 
+                    <div class="form-group">
+                        <label>
+                            <input type="checkbox" id="spatial-filter" checked>
+                            Filtrage spatial précis (utilise les limites communales)
+                        </label>
+                    </div>
+
                     <button id="extract-btn" class="btn-primary">
                         🔍 Extraire les données
                     </button>
@@ -121,20 +128,20 @@
 
                     <div class="tutorial-card">
                         <div class="step-number">4</div>
+                        <h3>Filtrage spatial</h3>
+                        <p>Le filtrage spatial précis garantit que seules les entités réellement dans la commune sont extraites (pas seulement dans l'emprise).</p>
+                    </div>
+
+                    <div class="tutorial-card">
+                        <div class="step-number">5</div>
                         <h3>Extraire les données</h3>
                         <p>Cliquez sur "Extraire les données" pour interroger le service WFS de l'IGN et visualiser les résultats sur la carte.</p>
                     </div>
 
                     <div class="tutorial-card">
-                        <div class="step-number">5</div>
-                        <h3>Explorer la carte</h3>
-                        <p>Cliquez sur les entités affichées pour voir leurs propriétés détaillées dans une popup interactive.</p>
-                    </div>
-
-                    <div class="tutorial-card">
                         <div class="step-number">6</div>
-                        <h3>Exporter</h3>
-                        <p>Téléchargez les données extraites au format GeoJSON pour les utiliser dans votre SIG préféré (QGIS, ArcGIS, etc.).</p>
+                        <h3>Explorer et exporter</h3>
+                        <p>Cliquez sur les entités pour voir leurs propriétés. Téléchargez les données au format GeoJSON pour votre SIG.</p>
                     </div>
                 </div>
 
@@ -144,31 +151,31 @@
                         <li><strong>API Découpage Administratif</strong> : Recherche de communes françaises</li>
                         <li><strong>WFS BD TOPO v3 (IGN)</strong> : Service web de données géographiques</li>
                         <li><strong>Leaflet</strong> : Bibliothèque de cartographie interactive</li>
+                        <li><strong>Turf.js</strong> : Analyse spatiale et filtrage géométrique précis</li>
                         <li><strong>GeoJSON</strong> : Format d'échange de données géographiques</li>
                     </ul>
                     
-                    <div style="margin-top: 1.5rem; padding: 1rem; background: #fff3cd; border-left: 4px solid #ffc107; border-radius: 4px;">
+                    <div style="margin-top: 1.5rem; padding: 1rem; background: #d4edda; border-left: 4px solid #28a745; border-radius: 4px;">
+                        <strong>✨ Filtrage spatial amélioré !</strong><br>
+                        Le filtrage spatial précis utilise les limites communales exactes pour ne sélectionner que les entités réellement dans la commune. 
+                        Cela élimine les données en périphérie qui seraient dans l'emprise rectangulaire mais hors de la commune.
+                    </div>
+
+                    <div style="margin-top: 1rem; padding: 1rem; background: #fff3cd; border-left: 4px solid #ffc107; border-radius: 4px;">
                         <strong>⚠️ Conseil d'utilisation :</strong><br>
-                        Pour les grandes communes ou les couches très denses (comme les bâtiments à Paris), 
-                        commencez avec une limite de 5 000 entités. Les extractions importantes peuvent prendre du temps 
-                        et ralentir votre navigateur. L'option "Illimité" est à utiliser avec prudence.
+                        Le filtrage spatial peut prendre quelques secondes supplémentaires pour les grandes extractions. 
+                        Vous pouvez le désactiver pour gagner du temps si vous n'avez pas besoin d'une précision maximale.
                     </div>
 
                     <div style="margin-top: 1rem; padding: 1rem; background: #d1ecf1; border-left: 4px solid #0c5460; border-radius: 4px;">
                         <strong>💡 Astuce :</strong><br>
                         Si vous atteignez la limite d'entités, le système vous l'indiquera. Vous pourrez alors augmenter 
-                        cette limite ou affiner votre zone de recherche en sélectionnant une commune plus petite.
-                    </div>
-
-                    <div style="margin-top: 1rem; padding: 1rem; background: #d4edda; border-left: 4px solid #28a745; border-radius: 4px;">
-                        <strong>🔍 Debug :</strong><br>
-                        En cas d'erreur, ouvrez la console de votre navigateur (touche F12) pour voir les détails 
-                        de la requête WFS et identifier le problème.
+                        cette limite ou affiner votre zone de recherche.
                     </div>
                 </div>
 
                 <div style="margin-top: 2rem; padding: 2rem; background: white; border-radius: 8px; border: 2px solid #e9ecef;">
-                    <h3 style="color: #0066cc; margin-bottom: 1rem;">📋 Couches disponibles</h3>
+                    <h3 style="color: #008B8B; margin-bottom: 1rem;">📋 Couches disponibles</h3>
                     <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1rem;">
                         <div>
                             <strong>🏢 Bâtiments</strong><br>
@@ -214,11 +221,12 @@
 
     <footer>
         <p>Données © <a href="https://www.ign.fr" target="_blank">IGN</a> - BD TOPO® | 
-           Réalisé avec <a href="https://leafletjs.com" target="_blank">Leaflet</a> | 
+           Réalisé avec <a href="https://leafletjs.com" target="_blank">Leaflet</a> et <a href="https://turfjs.org" target="_blank">Turf.js</a> | 
            <a href="https://github.com" target="_blank">Code source sur GitHub</a></p>
     </footer>
 
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@turf/turf@7/turf.min.js"></script>
     <script src="app.js"></script>
 </body>
 </html>
