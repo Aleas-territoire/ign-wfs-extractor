@@ -38,7 +38,6 @@
                                 <option value="BDTOPO_V3:batiment">Bâtiments</option>
                                 <option value="BDTOPO_V3:construction_lineaire">Constructions linéaires (murs, clôtures)</option>
                                 <option value="BDTOPO_V3:construction_ponctuelle">Constructions ponctuelles</option>
-                                <option value="BDTOPO_V3:construction_surfacique">Constructions surfaciques</option>
                             </optgroup>
                             
                             <optgroup label="🛣️ Transport">
@@ -69,19 +68,13 @@
                                 <option value="BDTOPO_V3:conduite">Conduites</option>
                             </optgroup>
                             
-                            <optgroup label="🏥 Santé">
-                                <option value="BDTOPO_V3:construction_surfacique" data-filter="sante">Établissements de santé</option>
-                            </optgroup>
-                            
-                            <optgroup label="🎓 Enseignement et culture">
-                                <option value="BDTOPO_V3:construction_surfacique" data-filter="enseignement">Établissements d'enseignement</option>
+                            <optgroup label="🏃 Sport et loisirs">
                                 <option value="BDTOPO_V3:terrain_de_sport">Terrains de sport</option>
                                 <option value="BDTOPO_V3:piste_d_aerodrome">Pistes d'aérodrome</option>
                             </optgroup>
                             
-                            <optgroup label="⚰️ Cimetières et culte">
+                            <optgroup label="⚰️ Cimetières">
                                 <option value="BDTOPO_V3:cimetiere">Cimetières</option>
-                                <option value="BDTOPO_V3:construction_surfacique" data-filter="culte">Lieux de culte</option>
                             </optgroup>
                             
                             <optgroup label="🏛️ Administratif">
@@ -92,7 +85,6 @@
                             
                             <optgroup label="🏭 Activités économiques">
                                 <option value="BDTOPO_V3:zone_d_activite_ou_d_interet">Zones d'activité</option>
-                                <option value="BDTOPO_V3:construction_surfacique" data-filter="industrie">Sites industriels</option>
                             </optgroup>
                             
                             <optgroup label="🏞️ Divers">
@@ -174,7 +166,7 @@
                     <div class="tutorial-card">
                         <div class="step-number">2</div>
                         <h3>Choisir une thématique</h3>
-                        <p>Sélectionnez une couche parmi les thématiques organisées : bâti, transport, hydrographie, végétation, réseaux, santé, etc.</p>
+                        <p>Sélectionnez une couche parmi les thématiques organisées : bâti, transport, hydrographie, végétation, réseaux, sport, etc.</p>
                     </div>
 
                     <div class="tutorial-card">
@@ -227,7 +219,7 @@
                     <div style="margin-top: 1rem; padding: 1rem; background: #d1ecf1; border-left: 4px solid #0c5460; border-radius: 4px;">
                         <strong>💡 Organisation thématique :</strong><br>
                         Les couches sont organisées par thématiques : Bâti, Transport, Hydrographie, Végétation, 
-                        Réseaux, Santé, Enseignement, Administratif, etc. Choisissez celle qui correspond à votre besoin.
+                        Réseaux, Sport, Cimetières, Administratif, Activités économiques. Choisissez celle qui correspond à votre besoin.
                     </div>
                 </div>
 
@@ -241,7 +233,6 @@
                                 <li>Bâtiments</li>
                                 <li>Constructions linéaires</li>
                                 <li>Constructions ponctuelles</li>
-                                <li>Constructions surfaciques</li>
                             </ul>
                         </div>
                         
@@ -285,28 +276,17 @@
                         </div>
                         
                         <div class="theme-card">
-                            <h4>🏥 Santé</h4>
+                            <h4>🏃 Sport & Loisirs</h4>
                             <ul>
-                                <li>Établissements de santé</li>
-                                <li>Hôpitaux</li>
-                                <li>Cliniques</li>
-                            </ul>
-                        </div>
-                        
-                        <div class="theme-card">
-                            <h4>🎓 Enseignement</h4>
-                            <ul>
-                                <li>Établissements scolaires</li>
                                 <li>Terrains de sport</li>
                                 <li>Pistes d'aérodrome</li>
                             </ul>
                         </div>
                         
                         <div class="theme-card">
-                            <h4>⚰️ Cimetières & Culte</h4>
+                            <h4>⚰️ Cimetières</h4>
                             <ul>
                                 <li>Cimetières</li>
-                                <li>Lieux de culte</li>
                             </ul>
                         </div>
                         
@@ -323,7 +303,15 @@
                             <h4>🏭 Activités</h4>
                             <ul>
                                 <li>Zones d'activité</li>
-                                <li>Sites industriels</li>
+                            </ul>
+                        </div>
+                        
+                        <div class="theme-card">
+                            <h4>🏞️ Divers</h4>
+                            <ul>
+                                <li>Points du réseau</li>
+                                <li>Lieux-dits</li>
+                                <li>Toponymie</li>
                             </ul>
                         </div>
                     </div>
