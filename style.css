@@ -5,7 +5,8 @@
 }
 
 :root {
-    --primary-color: #0066cc;
+    --primary-color: #008B8B;
+    --primary-dark: #006666;
     --secondary-color: #00aa66;
     --danger-color: #dc3545;
     --warning-color: #ffc107;
@@ -24,7 +25,7 @@ body {
 
 /* Header */
 header {
-    background: linear-gradient(135deg, var(--primary-color), #0052a3);
+    background: linear-gradient(135deg, var(--primary-color), var(--primary-dark));
     color: white;
     padding: 2rem 1rem;
     text-align: center;
@@ -157,9 +158,9 @@ header h1 {
 }
 
 .btn-primary:hover {
-    background: #0052a3;
+    background: var(--primary-dark);
     transform: translateY(-2px);
-    box-shadow: 0 4px 12px rgba(0, 102, 204, 0.3);
+    box-shadow: 0 4px 12px rgba(0, 139, 139, 0.3);
 }
 
 .btn-secondary {
@@ -246,6 +247,7 @@ header h1 {
 .map-legend h4 {
     margin-bottom: 0.5rem;
     font-size: 0.9rem;
+    color: var(--primary-color);
 }
 
 .legend-item {
@@ -275,6 +277,10 @@ header h1 {
     color: var(--primary-color);
     margin-bottom: 2rem;
     font-size: 2rem;
+}
+
+.tutorial h3 {
+    color: var(--primary-color);
 }
 
 .tutorial-grid {
@@ -403,5 +409,11 @@ footer a:hover {
 
     .tutorial {
         padding: 2rem 1rem;
+    }
+
+    .map-legend {
+        bottom: 10px;
+        right: 10px;
+        padding: 0.75rem;
     }
 }
