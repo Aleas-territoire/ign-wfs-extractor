@@ -32,29 +32,41 @@ document.addEventListener('DOMContentLoaded', () => {
     // Initialiser la carte
     initMap();
     
-    // Gestionnaire du panneau d'aide
-    const helpToggle = document.getElementById('help-toggle');
-    const helpPanel = document.getElementById('help-panel');
-    const helpClose = document.getElementById('help-close');
+// Gestionnaire du panneau d'aide
+const helpToggle = document.getElementById('help-toggle');
+const helpPanel = document.getElementById('help-panel');
+const helpClose = document.getElementById('help-close');
+
+if (helpToggle && helpPanel && helpClose) {
+    helpToggle.addEventListener('click', (e) => {
+        e.preventDefault();
+        e.stopPropagation();
+        helpPanel.classList.add('active');
+        console.log('Panneau d\'aide ouvert');
+    });
     
-    if (helpToggle && helpPanel && helpClose) {
-        helpToggle.addEventListener('click', () => {
-            helpPanel.classList.add('active');
-        });
-        
-        helpClose.addEventListener('click', () => {
+    helpClose.addEventListener('click', (e) => {
+        e.preventDefault();
+        e.stopPropagation();
+        helpPanel.classList.remove('active');
+        console.log('Panneau d\'aide fermé');
+    });
+    
+    // Fermer l'aide en cliquant en dehors
+    document.addEventListener('click', (e) => {
+        if (helpPanel.classList.contains('active') && 
+            !helpPanel.contains(e.target) && 
+            !helpToggle.contains(e.target)) {
             helpPanel.classList.remove('active');
-        });
-        
-        // Fermer l'aide en cliquant en dehors
-        document.addEventListener('click', (e) => {
-            if (helpPanel.classList.contains('active') && 
-                !helpPanel.contains(e.target) && 
-                !helpToggle.contains(e.target)) {
-                helpPanel.classList.remove('active');
-            }
-        });
-    }
+        }
+    });
+} else {
+    console.error('Éléments du panneau d\'aide non trouvés:', {
+        helpToggle: !!helpToggle,
+        helpPanel: !!helpPanel,
+        helpClose: !!helpClose
+    });
+}
     
     // Configurer la recherche de communes
     const communeSearch = document.getElementById('commune-search');
@@ -819,3 +831,4 @@ function showStatus(message, type) {
         }
     }
 }
+
